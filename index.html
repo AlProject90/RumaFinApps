@@ -1,3 +1,4 @@
+HEAD
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -328,3 +329,239 @@
 </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RumaFin - Pengeluaran Rumah Tangga</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-extrabold text-center text-indigo-800 mb-2 tracking-tight">
+      RumaFin <span class="text-gray-600 text-xl">(Rumah Finance)</span>
+    </h1>
+    <p class="text-lg text-center text-gray-700 mb-6">
+      Catatan / Kas Pengeluaran Rumah Tangga Digital
+    </p>
+
+    <div class="bg-white p-4 rounded shadow-md mb-6">
+      <h2 class="text-xl font-semibold text-green-700 mb-2">💰 Pemasukan / Penghasilan</h2>
+      <div class="flex flex-wrap gap-4 items-end">
+        <div class="flex flex-col">
+          <label for="penghasilan" class="text-sm font-medium text-gray-600">Masukkan Total Penghasilan</label>
+          <input type="number" id="penghasilan" placeholder="cth: 5000000" class="border p-2 rounded w-60" oninput="hitungSisa()">
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-600">Total Pengeluaran Saat Ini</label>
+          <input type="text" id="totalPengeluaran" class="border p-2 rounded w-60 bg-gray-100" readonly>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm font-medium text-gray-600">Sisa Uang</label>
+          <input type="text" id="sisaUang" class="border p-2 rounded w-60 bg-yellow-100 font-bold text-lg" readonly>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+      <div class="flex gap-2">
+        <button onclick="tambahBaris()" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">+ Tambah Baris</button>
+        <button onclick="simpanSemua()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan Semua</button>
+        <button onclick="eksporExcel()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">📄 Ekspor ke Excel</button>
+        <button onclick="resetData()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">🔄 Reset Data</button>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <input type="text" id="searchInput" oninput="tampilkanData()" placeholder="Cari kategori atau keterangan..." class="p-2 rounded border border-gray-300" />
+        <select id="filterBulan" onchange="tampilkanData()" class="p-2 border rounded">
+          <option value="">Semua Bulan</option>
+          <script>for(let i=0;i<12;i++)document.write(`<option value="${i}">${new Date(0,i).toLocaleString('id',{month:'long'})}</option>`);</script>
+        </select>
+        <input type="number" id="filterTahun" onchange="tampilkanData()" placeholder="Tahun (misal: 2025)" class="p-2 border rounded">
+        <input type="date" id="startDate" class="p-2 border rounded">
+        <input type="date" id="endDate" class="p-2 border rounded">
+        <button onclick="tampilkanData()" class="bg-indigo-600 text-white px-3 rounded hover:bg-indigo-700">🔍 Cari</button>
+        <button onclick="resetFilter()" class="bg-gray-500 text-white px-3 rounded hover:bg-gray-600">🔄 Reset Filter</button>
+  
+      </div>
+    </div>
+
+    <div class="overflow-x-auto bg-white p-4 rounded shadow-md mb-6">
+      <table class="min-w-full text-sm text-gray-700" id="inputTable">
+        <thead>
+          <tr class="bg-blue-100 text-left">
+            <th class="p-2 border w-1/5">Tanggal</th>
+            <th class="p-2 border w-1/5">Kategori</th>
+            <th class="p-2 border w-1/5">Nominal (Rp)</th>
+            <th class="p-2 border w-2/5">Keterangan</th>
+            <th class="p-2 border w-auto">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="inputRows"></tbody>
+      </table>
+    </div>
+
+    <div class="space-y-6" id="bulanContainer"></div>
+  </div>
+
+  <script>
+    const NAMA_BULAN = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
+    let data = JSON.parse(localStorage.getItem("pengeluaran")) || [];
+
+    function resetFilter() {
+  document.getElementById("searchInput").value = "";
+  document.getElementById("filterBulan").value = "";
+  document.getElementById("filterTahun").value = "";
+  document.getElementById("startDate").value = "";
+  document.getElementById("endDate").value = "";
+  tampilkanData();
+}
+
+
+    function hitungSisa() {
+      const penghasilan = Number(document.getElementById("penghasilan").value);
+      const total = data.reduce((sum, item) => sum + Number(item.nominal), 0);
+      const sisa = penghasilan - total;
+      document.getElementById("totalPengeluaran").value = `Rp ${total.toLocaleString('id-ID')}`;
+      document.getElementById("sisaUang").value = `Rp ${sisa.toLocaleString('id-ID')}`;
+    }
+
+    function tambahBaris() {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="border p-1"><input type="date" class="w-full border rounded p-1"></td>
+        <td class="border p-1"><input type="text" placeholder="Kategori" class="w-full border rounded p-1"></td>
+        <td class="border p-1"><input type="number" placeholder="Nominal" class="w-full border rounded p-1"></td>
+        <td class="border p-1"><input type="text" placeholder="Keterangan" class="w-full border rounded p-1"></td>
+        <td class="border p-1 text-center"><button onclick="this.closest('tr').remove()" class="text-red-500 hover:underline">Hapus</button></td>
+      `;
+      document.getElementById("inputRows").appendChild(row);
+    }
+
+    function simpanSemua() {
+      const rows = document.querySelectorAll("#inputRows tr");
+      rows.forEach(row => {
+        const inputs = row.querySelectorAll("input");
+        const tanggal = inputs[0].value;
+        const kategori = inputs[1].value;
+        const nominal = inputs[2].value;
+        const keterangan = inputs[3].value;
+        if (tanggal && kategori && nominal) {
+          data.push({ tanggal, kategori, nominal, keterangan });
+        }
+      });
+      localStorage.setItem("pengeluaran", JSON.stringify(data));
+      tampilkanData();
+      document.getElementById("inputRows").innerHTML = "";
+      hitungSisa();
+    }
+
+    function tampilkanData() {
+      const container = document.getElementById("bulanContainer");
+      container.innerHTML = "";
+      const totalPerBulan = Array(12).fill(0);
+      const search = document.getElementById("searchInput")?.value.toLowerCase() || "";
+      const bulanFilter = document.getElementById("filterBulan")?.value;
+      const tahunFilter = document.getElementById("filterTahun")?.value;
+      const startDate = document.getElementById("startDate")?.value ? new Date(document.getElementById("startDate").value + "T00:00:00") : null;
+      const endDate = document.getElementById("endDate")?.value ? new Date(document.getElementById("endDate").value + "T23:59:59") : null;
+
+      for (let i = 0; i < 12; i++) {
+        const card = document.createElement("div");
+        card.className = "bg-white p-4 rounded shadow-md";
+        card.dataset.bulan = i;
+        card.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-lg font-semibold text-indigo-700">${NAMA_BULAN[i]}</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm text-gray-700 border">
+              <thead>
+                <tr class="bg-gray-100">
+                  <th class="border p-2 text-left">Tanggal</th>
+                  <th class="border p-2 text-left">Kategori</th>
+                  <th class="border p-2 text-left">Nominal</th>
+                  <th class="border p-2 text-left">Keterangan</th>
+                </tr>
+              </thead>
+              <tbody id="bulan-${i}"></tbody>
+              <tfoot><tr><td colspan="2" class="text-right font-semibold p-2">Total:</td><td id="total-${i}" class="p-2 font-bold text-blue-700"></td><td></td></tr></tfoot>
+            </table>
+          </div>
+        `;
+        container.appendChild(card);
+      }
+
+      data.map((item, index) => ({ ...item, index }))
+        .filter(item => {
+          const tgl = new Date(item.tanggal);
+          const bulan = tgl.getMonth();
+          const tahun = tgl.getFullYear();
+          if (search && !(item.kategori.toLowerCase().includes(search) || item.keterangan?.toLowerCase().includes(search))) return false;
+          if (bulanFilter !== "" && bulan != bulanFilter) return false;
+          if (tahunFilter && tahun != tahunFilter) return false;
+          if (startDate && tgl < startDate) return false;
+          if (endDate && tgl > endDate) return false;
+          return true;
+        })
+        .forEach(item => {
+          const tgl = new Date(item.tanggal);
+          const bulan = tgl.getMonth();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="border p-1">${item.tanggal}</td>
+            <td class="border p-1">${item.kategori}</td>
+            <td class="border p-1">Rp ${Number(item.nominal).toLocaleString("id-ID")}</td>
+            <td class="border p-1">${item.keterangan || '-'}</td>
+          `;
+          document.getElementById(`bulan-${bulan}`).appendChild(tr);
+          totalPerBulan[bulan] += Number(item.nominal);
+        });
+
+      totalPerBulan.forEach((total, i) => {
+  const tbody = document.getElementById(`bulan-${i}`);
+  const totalCell = document.getElementById(`total-${i}`);
+  totalCell.textContent = `Rp ${total.toLocaleString("id-ID")}`;
+  const card = tbody.closest("div[data-bulan]");
+
+  // Logika tampilan:
+  if (bulanFilter !== "") {
+    card.style.display = (bulanFilter == i) ? "block" : "none";
+  } else if (startDate || endDate || search || tahunFilter) {
+    // Jika ada filter pencarian, tampilkan hanya bulan dengan data
+    card.style.display = (tbody.children.length > 0) ? "block" : "none";
+  } else {
+    // Tidak ada filter, tampilkan semua bulan
+    card.style.display = "block";
+  }
+});
+
+      hitungSisa();
+    }
+
+    function eksporExcel() {
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Pengeluaran");
+      XLSX.writeFile(wb, "pengeluaran_rumah_tangga.xlsx");
+    }
+
+    function resetData() {
+      if (confirm("Yakin ingin menghapus semua data?")) {
+        localStorage.removeItem("pengeluaran");
+        data = [];
+        tampilkanData();
+        hitungSisa();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      tampilkanData();
+      hitungSisa();
+    });
+  </script>
+</body>
+</html>
+>11519be89e336606de955dbaa8ee3334f1fc5c69
