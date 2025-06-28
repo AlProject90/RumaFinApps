@@ -15,6 +15,7 @@ const database = firebase.database();
 
 const NAMA_BULAN = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 let data = [];
+let totalPenghasilan = 0;
 
 // Login dan Logout
 function login() {
@@ -51,23 +52,25 @@ function simpanSemua() {
       data.push({ tanggal, kategori, nominal, keterangan });
     }
   });
-  simpanKeDatabase(data);
+  simpanKeDatabase();
   document.getElementById("inputRows").innerHTML = "";
   tampilkanData();
-  hitungSisa();
 }
 
 function hitungSisa() {
-  const penghasilan = Number(document.getElementById("penghasilan").value);
   const total = data.reduce((sum, item) => sum + Number(item.nominal), 0);
-  const sisa = penghasilan - total;
+  const sisa = totalPenghasilan - total;
   document.getElementById("totalPengeluaran").value = `Rp ${total.toLocaleString("id-ID")}`;
   document.getElementById("sisaUang").value = `Rp ${sisa.toLocaleString("id-ID")}`;
 }
 
-function simpanKeDatabase(dataBaru) {
+function simpanKeDatabase() {
   const user = auth.currentUser;
-  if (user) database.ref("pengeluaran/" + user.uid).set(dataBaru);
+  if (user) {
+    const penghasilan = Number(document.getElementById("penghasilan").value);
+    database.ref("pengeluaran/" + user.uid).set({ penghasilan, data });
+    totalPenghasilan = penghasilan;
+  }
   hitungSisa();
 }
 
@@ -160,9 +163,8 @@ function tampilkanData() {
 function hapusData(index) {
   if (confirm("Yakin ingin menghapus data ini?")) {
     data.splice(index, 1);
-    simpanKeDatabase(data);
+    simpanKeDatabase();
     tampilkanData();
-    hitungSisa();
   }
 }
 
@@ -179,9 +181,8 @@ function editData(index) {
     </td>
   `;
   const tbody = document.querySelector(`#bulan-${new Date(item.tanggal).getMonth()}`);
-  const allRows = Array.from(tbody.children);
-  const targetRowIndex = allRows.findIndex(tr => tr.innerText.includes(item.kategori) && tr.innerText.includes(item.nominal));
-  if (targetRowIndex !== -1) tbody.replaceChild(row, tbody.children[targetRowIndex]);
+  tbody.innerHTML = "";
+  tbody.appendChild(row);
 }
 
 function simpanEdit(index, button) {
@@ -193,9 +194,8 @@ function simpanEdit(index, button) {
     nominal: inputs[2].value,
     keterangan: inputs[3].value,
   };
-  simpanKeDatabase(data);
+  simpanKeDatabase();
   tampilkanData();
-  hitungSisa();
 }
 
 function resetData() {
@@ -204,13 +204,13 @@ function resetData() {
     if (user) database.ref("pengeluaran/" + user.uid).remove();
     data = [];
     tampilkanData();
-    hitungSisa();
   }
 }
 
 function resetFilter() {
   document.getElementById("searchInput").value = "";
   document.getElementById("filterBulan").value = "";
+  document.getElementById("filterBulanAkhir").value = "";
   document.getElementById("filterTahun").value = "";
   document.getElementById("startDate").value = "";
   document.getElementById("endDate").value = "";
@@ -233,7 +233,10 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnReset").addEventListener("click", resetData);
   document.getElementById("btnCari").addEventListener("click", tampilkanData);
   document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
-  document.getElementById("penghasilan").addEventListener("input", hitungSisa);
+  document.getElementById("penghasilan").addEventListener("input", () => {
+    totalPenghasilan = Number(document.getElementById("penghasilan").value);
+    hitungSisa();
+  });
 });
 
 auth.onAuthStateChanged(user => {
@@ -246,16 +249,18 @@ auth.onAuthStateChanged(user => {
     logoutBtn.classList.remove("hidden");
     userName.textContent = `👋 Halo, ${user.displayName}`;
     database.ref("pengeluaran/" + user.uid).once("value").then(snapshot => {
-      data = snapshot.val() || [];
+      const val = snapshot.val();
+      data = val?.data || [];
+      totalPenghasilan = val?.penghasilan || 0;
+      document.getElementById("penghasilan").value = totalPenghasilan;
       tampilkanData();
-      hitungSisa();
     });
   } else {
     loginBtn.classList.remove("hidden");
     logoutBtn.classList.add("hidden");
     userName.textContent = "";
     data = [];
+    totalPenghasilan = 0;
     tampilkanData();
-    hitungSisa();
   }
 });
