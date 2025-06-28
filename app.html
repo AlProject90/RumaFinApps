@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RumaFin - Pengeluaran Rumah Tangga</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <!-- XLSX for export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-extrabold text-center text-indigo-800 mb-2 tracking-tight">
+      RumaFin <span class="text-gray-600 text-xl">(Rumah Finance)</span>
+    </h1>
+    <p class="text-lg text-center text-gray-700 mb-6">
+      Catatan / Kas Pengeluaran Rumah Tangga Digital
+    </p>
+
+    <div class="text-center my-4">
+      <button id="btnLogin" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">🔐 Login dengan Google</button>
+      <button id="btnLogout" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 hidden">Logout</button>
+      <p id="userName" class="mt-2 text-green-700 font-semibold"></p>
+    </div>
+
+    <!-- Form Input -->
+    <div class="bg-white p-4 rounded shadow-md mb-6">
+      <h2 class="text-xl font-semibold text-green-700 mb-2">💰 Pemasukan / Penghasilan</h2>
+      <div class="flex flex-wrap gap-4 items-end">
+        <div class="flex flex-col">
+          <label class="text-sm">Total Penghasilan</label>
+          <input type="number" id="penghasilan" class="border p-2 rounded w-60" placeholder="cth: 5000000">
+          <button id="btnEditPenghasilan" class="mt-2 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">💾 Simpan Penghasilan</button>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm">Total Pengeluaran</label>
+          <input type="text" id="totalPengeluaran" class="border p-2 rounded w-60 bg-gray-100" readonly>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm">Sisa Uang</label>
+          <input type="text" id="sisaUang" class="border p-2 rounded w-60 bg-yellow-100 font-bold text-lg" readonly>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Data -->
+    <div class="bg-white p-4 rounded shadow-md mb-6">
+      <h2 class="text-lg font-semibold text-indigo-700 mb-4">🔍 Filter Data</h2>
+      <div class="flex flex-wrap gap-2 items-end">
+        <input type="text" id="searchInput" placeholder="Cari semua data..." class="p-2 border rounded w-40" />
+        <select id="filterBulan" class="p-2 border rounded w-40"></select>
+        <select id="filterBulanAkhir" class="p-2 border rounded w-40"></select>
+        <input type="number" id="filterTahun" placeholder="Tahun (2025)" class="p-2 border rounded w-32">
+        <input type="date" id="startDate" class="p-2 border rounded">
+        <input type="date" id="endDate" class="p-2 border rounded">
+        <button id="btnCari" class="bg-indigo-600 text-white px-3 py-2 rounded">🔍 Cari Filter</button>
+        <button id="btnResetFilter" class="bg-gray-500 text-white px-3 py-2 rounded">🔄 Reset Filter</button>
+      </div>
+    </div>
+
+    <!-- Tombol Aksi -->
+    <div class="flex flex-wrap justify-between gap-4 mb-4">
+      <div class="flex gap-2">
+        <button id="btnTambah" class="bg-gray-700 text-white px-4 py-2 rounded">+ Input Data</button>
+        <button id="btnSimpan" class="bg-blue-600 text-white px-4 py-2 rounded">Simpan Semua</button>
+        <button id="btnExport" class="bg-green-600 text-white px-4 py-2 rounded">📄 Ekspor ke Excel</button>
+        <button id="btnReset" class="bg-red-600 text-white px-4 py-2 rounded">🔄 Reset Data</button>
+      </div>
+    </div>
+
+    <!-- Tabel Input -->
+    <div class="overflow-x-auto bg-white p-4 rounded shadow-md mb-6">
+      <table class="min-w-full text-sm text-gray-700" id="inputTable">
+        <thead>
+          <tr class="bg-blue-100">
+            <th class="p-2 border">Tanggal</th>
+            <th class="p-2 border">Kategori</th>
+            <th class="p-2 border">Nominal</th>
+            <th class="p-2 border">Keterangan</th>
+            <th class="p-2 border">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="inputRows"></tbody>
+      </table>
+    </div>
+
+    <!-- Output Data Bulanan -->
+    <div class="space-y-6" id="bulanContainer"></div>
+  </div>
+
+  <!-- Script Tambah Bulan ke Dropdown Filter -->
+  <script>
+    function isiBulanSelect(id) {
+      const select = document.getElementById(id);
+      select.innerHTML = '';
+      const allOption = document.createElement('option');
+      allOption.value = "";
+      allOption.textContent = "Semua Bulan";
+      select.appendChild(allOption);
+      for (let i = 0; i < 12; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = new Date(0, i).toLocaleString('id', { month: 'long' });
+        select.appendChild(option);
+      }
+    }
+    isiBulanSelect('filterBulan');
+    isiBulanSelect('filterBulanAkhir');
+  </script>
+
+  <!-- Aplikasi -->
+  <script src="app.js?v=6"></script>
+</body>
+</html>
