@@ -207,3 +207,31 @@ window.addEventListener("DOMContentLoaded", () => {
     bulanSelect.appendChild(option);
   }
 });
+// Event Listener Tombol
+window.addEventListener("DOMContentLoaded", () => {
+  // Tombol Login dan Logout
+  document.getElementById("btnLogin").addEventListener("click", login);
+  document.getElementById("btnLogout").addEventListener("click", logout);
+
+  // Tombol Input, Simpan, Export, Reset
+  document.getElementById("btnTambah").addEventListener("click", tambahBaris);
+  document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
+  document.getElementById("btnExport").addEventListener("click", eksporExcel);
+  document.getElementById("btnReset").addEventListener("click", resetData);
+
+  // Filter
+  document.getElementById("btnCari").addEventListener("click", tampilkanData);
+  document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
+});
+
+// Tampilkan tombol Logout saat login
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("btnLogin").classList.add("hidden");
+    document.getElementById("btnLogout").classList.remove("hidden");
+  } else {
+    document.getElementById("btnLogin").classList.remove("hidden");
+    document.getElementById("btnLogout").classList.add("hidden");
+  }
+});
+
