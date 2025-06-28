@@ -15,46 +15,18 @@ const database = firebase.database();
 const NAMA_BULAN = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 let data = [];
 
-document.getElementById("btnLogin").addEventListener("click", login);
-document.getElementById("btnLogout").addEventListener("click", logout);
-document.getElementById("btnTambah").addEventListener("click", tambahBaris);
-document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
-document.getElementById("btnExport").addEventListener("click", eksporExcel);
-document.getElementById("btnReset").addEventListener("click", resetData);
-document.getElementById("btnCari").addEventListener("click", tampilkanData);
-document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
-
-auth.onAuthStateChanged(user => {
-  const loginBtn = document.getElementById("btnLogin");
-  const logoutBtn = document.getElementById("btnLogout");
-  if (user) {
-    document.getElementById("userName").textContent = `👋 Halo, ${user.displayName}`;
-    loginBtn.classList.add("hidden");
-    logoutBtn.classList.remove("hidden");
-    database.ref("pengeluaran/" + user.uid).once("value").then(snapshot => {
-      data = snapshot.val() || [];
-      tampilkanData();
-      hitungSisa();
-    });
-  } else {
-    document.getElementById("userName").textContent = "";
-    loginBtn.classList.remove("hidden");
-    logoutBtn.classList.add("hidden");
-    data = [];
-    tampilkanData();
-    hitungSisa();
-  }
-});
-
+// Login Google
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(error => alert("Login gagal: " + error.message));
 }
 
+// Logout
 function logout() {
   auth.signOut();
 }
 
+// Tambah baris input data
 function tambahBaris() {
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -67,6 +39,7 @@ function tambahBaris() {
   document.getElementById("inputRows").appendChild(row);
 }
 
+// Simpan semua input ke data dan Firebase
 function simpanSemua() {
   const rows = document.querySelectorAll("#inputRows tr");
   rows.forEach(row => {
@@ -85,6 +58,7 @@ function simpanSemua() {
   hitungSisa();
 }
 
+// Hitung total dan sisa uang
 function hitungSisa() {
   const penghasilan = Number(document.getElementById("penghasilan").value);
   const total = data.reduce((sum, item) => sum + Number(item.nominal), 0);
@@ -93,17 +67,18 @@ function hitungSisa() {
   document.getElementById("sisaUang").value = `Rp ${sisa.toLocaleString("id-ID")}`;
 }
 
+// Tampilkan data ke UI berdasarkan filter
 function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
 
   const totalPerBulan = Array(12).fill(0);
 
-  const search = document.getElementById("searchInput")?.value.toLowerCase() || "";
-  const bulanFilter = document.getElementById("filterBulan")?.value;
-  const tahunFilter = document.getElementById("filterTahun")?.value;
-  const startDate = document.getElementById("startDate")?.value ? new Date(document.getElementById("startDate").value) : null;
-  const endDate = document.getElementById("endDate")?.value ? new Date(document.getElementById("endDate").value) : null;
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const bulanFilter = document.getElementById("filterBulan").value;
+  const tahunFilter = document.getElementById("filterTahun").value;
+  const startDate = document.getElementById("startDate").value ? new Date(document.getElementById("startDate").value) : null;
+  const endDate = document.getElementById("endDate").value ? new Date(document.getElementById("endDate").value) : null;
 
   const dataFiltered = data.filter(item => {
     const tgl = new Date(item.tanggal);
@@ -124,7 +99,6 @@ function tampilkanData() {
   bulanTerpilih.forEach(i => {
     const card = document.createElement("div");
     card.className = "bg-white p-4 rounded shadow-md mb-4";
-    card.dataset.bulan = i;
     card.innerHTML = `
       <h2 class="text-lg font-semibold text-indigo-700 mb-2">${NAMA_BULAN[i]}</h2>
       <table class="min-w-full text-sm text-gray-700 border">
@@ -167,12 +141,18 @@ function tampilkanData() {
 
   totalPerBulan.forEach((total, i) => {
     const td = document.getElementById(`total-${i}`);
-    if (td) {
-      td.textContent = `Rp ${total.toLocaleString("id-ID")}`;
-    }
+    if (td) td.textContent = `Rp ${total.toLocaleString("id-ID")}`;
   });
 }
 
+// Simpan ke database Firebase
+function simpanKeDatabase(data) {
+  const user = auth.currentUser;
+  if (!user) return;
+  database.ref("pengeluaran/" + user.uid).set(data);
+}
+
+// Ekspor ke Excel
 function eksporExcel() {
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
@@ -180,6 +160,7 @@ function eksporExcel() {
   XLSX.writeFile(wb, "pengeluaran_rumah_tangga.xlsx");
 }
 
+// Reset data
 function resetData() {
   if (confirm("Yakin ingin menghapus semua data?")) {
     const user = auth.currentUser;
@@ -190,12 +171,7 @@ function resetData() {
   }
 }
 
-function simpanKeDatabase(data) {
-  const user = auth.currentUser;
-  if (!user) return;
-  database.ref("pengeluaran/" + user.uid).set(data);
-}
-
+// Reset filter
 function resetFilter() {
   document.getElementById("searchInput").value = "";
   document.getElementById("filterBulan").value = "";
@@ -205,34 +181,7 @@ function resetFilter() {
   tampilkanData();
 }
 
-// Tambah opsi bulan saat halaman dimuat + Event Listener tombol
-window.addEventListener("DOMContentLoaded", () => {
-  // Tambah opsi "Semua Bulan"
-  const bulanSelect = document.getElementById("filterBulan");
-  const optionAll = document.createElement("option");
-  optionAll.value = "";
-  optionAll.textContent = "Semua Bulan";
-  bulanSelect.appendChild(optionAll);
-
-  for (let i = 0; i < 12; i++) {
-    const option = document.createElement("option");
-    option.value = i;
-    option.textContent = NAMA_BULAN[i];
-    bulanSelect.appendChild(option);
-  }
-
-  // Semua tombol aktif
-  document.getElementById("btnLogin").addEventListener("click", login);
-  document.getElementById("btnLogout").addEventListener("click", logout);
-  document.getElementById("btnTambah").addEventListener("click", tambahBaris);
-  document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
-  document.getElementById("btnExport").addEventListener("click", eksporExcel);
-  document.getElementById("btnReset").addEventListener("click", resetData);
-  document.getElementById("btnCari").addEventListener("click", tampilkanData);
-  document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
-});
-
-// Listener login/logout (cukup 1x)
+// Auth state listener
 auth.onAuthStateChanged(user => {
   const loginBtn = document.getElementById("btnLogin");
   const logoutBtn = document.getElementById("btnLogout");
@@ -257,5 +206,14 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-
-
+// Tambah event listener tombol setelah DOM siap
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btnLogin").addEventListener("click", login);
+  document.getElementById("btnLogout").addEventListener("click", logout);
+  document.getElementById("btnTambah").addEventListener("click", tambahBaris);
+  document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
+  document.getElementById("btnExport").addEventListener("click", eksporExcel);
+  document.getElementById("btnReset").addEventListener("click", resetData);
+  document.getElementById("btnCari").addEventListener("click", tampilkanData);
+  document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
+});
