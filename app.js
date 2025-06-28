@@ -83,25 +83,23 @@ function tampilkanData() {
   const endDate = document.getElementById("endDate").value ? new Date(document.getElementById("endDate").value) : null;
 
   const dataFiltered = data.map((item, index) => ({ ...item, index })).filter(item => {
-    const tgl = new Date(item.tanggal);
-    const bulan = tgl.getMonth();
-    const tahun = tgl.getFullYear();
+  const tgl = new Date(item.tanggal);
+  const bulan = tgl.getMonth();
+  const tahun = tgl.getFullYear();
 
-    // Filter berdasarkan search (kategori atau keterangan)
-    if (search && !(item.kategori.toLowerCase().includes(search) || (item.keterangan || '').toLowerCase().includes(search))) {
-      return false;
-    }
+  if (search && !(item.kategori.toLowerCase().includes(search) || (item.keterangan || '').toLowerCase().includes(search))) {
+    return false;
+  }
 
-    // Filter berdasarkan bulan dan tahun
-    if (bulanFilter !== "" && bulan != bulanFilter) return false;
-    if (tahunFilter && tahun != tahunFilter) return false;
+  if (bulanFilter !== "" && bulan != bulanFilter) return false;
+  if (tahunFilter && tahun != tahunFilter) return false;
 
-    // Filter berdasarkan rentang tanggal
-    if (startDate && tgl < startDate) return false;
-    if (endDate && tgl > endDate) return false;
+  // 👇 Tambahkan pengecekan valid dan banding tanggal
+  if (startDate && tgl.toString() !== "Invalid Date" && tgl < startDate) return false;
+  if (endDate && tgl.toString() !== "Invalid Date" && tgl > endDate) return false;
 
-    return true;
-  });
+  return true;
+});
 
   const bulanTerpilih = bulanFilter !== "" ? [parseInt(bulanFilter)] : [...Array(12).keys()];
   bulanTerpilih.forEach(i => {
