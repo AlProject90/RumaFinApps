@@ -1,34 +1,19 @@
-# 🏠 RumaFin (Rumah Finance)
+# RumaFinApps
 
-**RumaFin** adalah aplikasi pencatat pengeluaran rumah tangga digital yang memudahkan pengguna untuk mencatat pemasukan dan pengeluaran harian, bulanan, serta menghitung sisa uang secara otomatis.
+Aplikasi Web Pencatatan Keuangan Rumah Tangga Sederhana berbasis Firebase dan TailwindCSS.
 
-## ✨ Fitur Unggulan
-- 🔐 Login dan logout dengan Google
-- 💰 Input dan edit total penghasilan
-- 📝 Tambah, edit, dan hapus data pengeluaran
-- 📆 Filter berdasarkan bulan, tahun, atau rentang tanggal
-- 📦 Simpan otomatis ke Firebase Realtime Database
-- 📊 Ringkasan total pengeluaran per bulan
-- 📁 Ekspor data ke file Excel
-- 🔄 Reset data dan reset filter
+## 🔐 Fitur Utama:
+- Login dengan Google
+- Input & simpan pengeluaran
+- Simpan total penghasilan
+- Rekap otomatis per bulan
+- Filter & ekspor ke Excel
+- Data tersimpan di cloud (Firebase Realtime Database)
 
-## 🚀 Cara Menggunakan
-1. Login menggunakan akun Google.
-2. Masukkan total penghasilan bulanan.
-3. Tambahkan data pengeluaran sesuai tanggal, kategori, nominal, dan keterangan.
-4. Klik **Simpan Semua**.
-5. Gunakan filter untuk melihat rekap data per bulan/tahun.
-6. Data otomatis tersimpan di Firebase dan akan muncul lagi setelah login ulang.
+## 🚀 Cara Pakai
+1. Login dengan Google
+2. Masukkan penghasilan → Klik "Simpan/Edit"
+3. Tambahkan pengeluaran
+4. Cek hasil rekap dan sisa uang
 
-## 🛠️ Teknologi yang Digunakan
-- Firebase Auth & Realtime Database
-- HTML, Tailwind CSS, dan JavaScript
-- XLSX.js untuk ekspor Excel
-
-## 🌐 Live Demo
-👉 [Klik untuk membuka RumaFin](https://alproject90.github.io/RumaFinApps/)
-
-## 👤 Developer
-Al Fiurrahman – [GitHub](https://github.com/alproject90)
-
----
+📦 Dibuat dengan HTML, JavaScript, Firebase, TailwindCSS
