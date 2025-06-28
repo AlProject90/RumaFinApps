@@ -15,9 +15,8 @@ const database = firebase.database();
 
 const NAMA_BULAN = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 let data = [];
-let totalPenghasilan = 0;
+let penghasilan = 0;
 
-// Login dan Logout
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(error => alert("Login gagal: " + error.message));
@@ -26,7 +25,6 @@ function logout() {
   auth.signOut();
 }
 
-// Tambah baris input manual
 function tambahBaris() {
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -39,7 +37,6 @@ function tambahBaris() {
   document.getElementById("inputRows").appendChild(row);
 }
 
-// Simpan semua input ke data dan Firebase
 function simpanSemua() {
   const rows = document.querySelectorAll("#inputRows tr");
   rows.forEach(row => {
@@ -59,7 +56,7 @@ function simpanSemua() {
 
 function hitungSisa() {
   const total = data.reduce((sum, item) => sum + Number(item.nominal), 0);
-  const sisa = totalPenghasilan - total;
+  const sisa = penghasilan - total;
   document.getElementById("totalPengeluaran").value = `Rp ${total.toLocaleString("id-ID")}`;
   document.getElementById("sisaUang").value = `Rp ${sisa.toLocaleString("id-ID")}`;
 }
@@ -67,9 +64,10 @@ function hitungSisa() {
 function simpanKeDatabase() {
   const user = auth.currentUser;
   if (user) {
-    const penghasilan = Number(document.getElementById("penghasilan").value);
-    database.ref("pengeluaran/" + user.uid).set({ penghasilan, data });
-    totalPenghasilan = penghasilan;
+    database.ref("pengeluaran/" + user.uid).set({
+      data: data,
+      penghasilan: penghasilan
+    });
   }
   hitungSisa();
 }
@@ -77,12 +75,11 @@ function simpanKeDatabase() {
 function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
-
   const totalPerBulan = Array(12).fill(0);
 
   const search = document.getElementById("searchInput").value.toLowerCase();
   const bulanAwal = parseInt(document.getElementById("filterBulan").value);
-  const bulanAkhir = parseInt(document.getElementById("filterBulanAkhir")?.value);
+  const bulanAkhir = parseInt(document.getElementById("filterBulanAkhir").value);
   const tahunFilter = document.getElementById("filterTahun").value;
   const startDate = document.getElementById("startDate").value ? new Date(document.getElementById("startDate").value) : null;
   const endDate = document.getElementById("endDate").value ? new Date(document.getElementById("endDate").value) : null;
@@ -181,8 +178,9 @@ function editData(index) {
     </td>
   `;
   const tbody = document.querySelector(`#bulan-${new Date(item.tanggal).getMonth()}`);
-  tbody.innerHTML = "";
-  tbody.appendChild(row);
+  const allRows = Array.from(tbody.children);
+  const targetRowIndex = allRows.findIndex(tr => tr.innerText.includes(item.kategori) && tr.innerText.includes(item.nominal));
+  if (targetRowIndex !== -1) tbody.replaceChild(row, tbody.children[targetRowIndex]);
 }
 
 function simpanEdit(index, button) {
@@ -203,6 +201,8 @@ function resetData() {
     const user = auth.currentUser;
     if (user) database.ref("pengeluaran/" + user.uid).remove();
     data = [];
+    penghasilan = 0;
+    document.getElementById("penghasilan").value = "";
     tampilkanData();
   }
 }
@@ -233,9 +233,10 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnReset").addEventListener("click", resetData);
   document.getElementById("btnCari").addEventListener("click", tampilkanData);
   document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
-  document.getElementById("penghasilan").addEventListener("input", () => {
-    totalPenghasilan = Number(document.getElementById("penghasilan").value);
+  document.getElementById("penghasilan").addEventListener("input", (e) => {
+    penghasilan = Number(e.target.value);
     hitungSisa();
+    simpanKeDatabase();
   });
 });
 
@@ -249,10 +250,10 @@ auth.onAuthStateChanged(user => {
     logoutBtn.classList.remove("hidden");
     userName.textContent = `👋 Halo, ${user.displayName}`;
     database.ref("pengeluaran/" + user.uid).once("value").then(snapshot => {
-      const val = snapshot.val();
-      data = val?.data || [];
-      totalPenghasilan = val?.penghasilan || 0;
-      document.getElementById("penghasilan").value = totalPenghasilan;
+      const val = snapshot.val() || {};
+      data = val.data || [];
+      penghasilan = val.penghasilan || 0;
+      document.getElementById("penghasilan").value = penghasilan;
       tampilkanData();
     });
   } else {
@@ -260,7 +261,7 @@ auth.onAuthStateChanged(user => {
     logoutBtn.classList.add("hidden");
     userName.textContent = "";
     data = [];
-    totalPenghasilan = 0;
+    penghasilan = 0;
     tampilkanData();
   }
 });
