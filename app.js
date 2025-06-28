@@ -2,6 +2,7 @@
 const firebaseConfig = {
   apiKey: "AIzaSyCtXSM2NOuH4ruhasx7O7rzxTxxKfYdTts",
   authDomain: "rumafinapps.firebaseapp.com",
+  databaseURL: "https://rumafinapps-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "rumafinapps",
   storageBucket: "rumafinapps.appspot.com",
   messagingSenderId: "456685667439",
