@@ -1,2 +1,2 @@
-# RumaFinApps
-E-Kas Rumah Tangga
+# RumaFin
+Aplikasi pencatatan keuangan rumah tangga dengan Firebase Auth & Realtime Database.
