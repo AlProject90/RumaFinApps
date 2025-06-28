@@ -74,6 +74,7 @@ function simpanKeDatabase(dataBaru) {
 function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
+
   const totalPerBulan = Array(12).fill(0);
   const search = document.getElementById("searchInput").value.toLowerCase();
   const bulanFilter = document.getElementById("filterBulan").value;
@@ -85,11 +86,20 @@ function tampilkanData() {
     const tgl = new Date(item.tanggal);
     const bulan = tgl.getMonth();
     const tahun = tgl.getFullYear();
-    if (search && !(item.kategori.toLowerCase().includes(search) || item.keterangan?.toLowerCase().includes(search))) return false;
+
+    // Filter berdasarkan search (kategori atau keterangan)
+    if (search && !(item.kategori.toLowerCase().includes(search) || (item.keterangan || '').toLowerCase().includes(search))) {
+      return false;
+    }
+
+    // Filter berdasarkan bulan dan tahun
     if (bulanFilter !== "" && bulan != bulanFilter) return false;
     if (tahunFilter && tahun != tahunFilter) return false;
+
+    // Filter berdasarkan rentang tanggal
     if (startDate && tgl < startDate) return false;
     if (endDate && tgl > endDate) return false;
+
     return true;
   });
 
