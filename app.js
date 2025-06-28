@@ -61,11 +61,7 @@ function simpanKeDatabase() {
   const user = auth.currentUser;
   if (user) {
     const ref = database.ref("pengeluaran/" + user.uid);
-    ref.set({ penghasilan, data })
-      .then(() => console.log("✅ Data berhasil disimpan"))
-      .catch(err => console.error("❌ Gagal menyimpan data:", err));
-  } else {
-    console.error("❗ Tidak ada user login saat simpanKeDatabase");
+    ref.set({ penghasilan, data });
   }
   hitungSisa();
 }
@@ -249,7 +245,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("penghasilan").addEventListener("input", hitungSisa);
 });
 
-auth.onAuthStateChanged(async user => {
+auth.onAuthStateChanged(user => {
   const loginBtn = document.getElementById("btnLogin");
   const logoutBtn = document.getElementById("btnLogout");
   const userName = document.getElementById("userName");
@@ -258,28 +254,14 @@ auth.onAuthStateChanged(async user => {
     loginBtn.classList.add("hidden");
     logoutBtn.classList.remove("hidden");
     userName.textContent = `👋 Halo, ${user.displayName}`;
-
-    try {
-      const snapshot = await database.ref("pengeluaran/" + user.uid).once("value");
-      const val = snapshot.val();
-      console.log("📦 Data dari Firebase:", val);
-
-      if (val) {
-        data = val.data || [];
-        penghasilan = val.penghasilan || 0;
-        document.getElementById("penghasilan").value = penghasilan;
-      } else {
-        data = [];
-        penghasilan = 0;
-        document.getElementById("penghasilan").value = 0;
-      }
-
+    database.ref("pengeluaran/" + user.uid).once("value").then(snapshot => {
+      const val = snapshot.val() || {};
+      data = val.data || [];
+      penghasilan = val.penghasilan || 0;
+      document.getElementById("penghasilan").value = penghasilan;
       tampilkanData();
       hitungSisa();
-
-    } catch (err) {
-      console.error("❌ Gagal mengambil data dari Firebase:", err);
-    }
+    });
   } else {
     loginBtn.classList.remove("hidden");
     logoutBtn.classList.add("hidden");

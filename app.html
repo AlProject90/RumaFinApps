@@ -36,7 +36,10 @@
         <div class="flex flex-col">
           <label class="text-sm">Total Penghasilan</label>
           <input type="number" id="penghasilan" class="border p-2 rounded w-60" placeholder="cth: 5000000">
-          <button id="btnEditPenghasilan" class="mt-2 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">💾 Simpan Penghasilan</button>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm invisible">Edit</label>
+          <button id="btnEditPenghasilan" class="bg-yellow-500 text-white px-4 py-2 rounded">Edit</button>
         </div>
         <div class="flex flex-col">
           <label class="text-sm">Total Pengeluaran</label>
@@ -94,7 +97,6 @@
     <div class="space-y-6" id="bulanContainer"></div>
   </div>
 
-  <!-- Script Tambah Bulan ke Dropdown Filter -->
   <script>
     function isiBulanSelect(id) {
       const select = document.getElementById(id);
@@ -114,7 +116,6 @@
     isiBulanSelect('filterBulanAkhir');
   </script>
 
-  <!-- Aplikasi -->
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=final"></script>
 </body>
 </html>
