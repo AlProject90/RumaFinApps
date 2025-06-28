@@ -87,13 +87,19 @@
 
   <!-- JavaScript -->
   <script>
-    for (let i = 0; i < 12; i++) {
-      const option = document.createElement('option');
-      option.value = i;
-      option.textContent = new Date(0, i).toLocaleString('id', { month: 'long' });
-      document.getElementById('filterBulan').appendChild(option);
-    }
-  </script>
+  const allOption = document.createElement('option');
+  allOption.value = "";
+  allOption.textContent = "Semua Bulan";
+  document.getElementById('filterBulan').appendChild(allOption);
+
+  for (let i = 0; i < 12; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = new Date(0, i).toLocaleString('id', { month: 'long' });
+    document.getElementById('filterBulan').appendChild(option);
+  }
+</script>
+
   <script src="app.js?v=1"></script>
 </body>
 </html>

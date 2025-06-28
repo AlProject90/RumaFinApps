@@ -234,4 +234,31 @@ auth.onAuthStateChanged(user => {
     document.getElementById("btnLogout").classList.add("hidden");
   }
 });
+// ========== AKTIFKAN SEMUA TOMBOL ==========
+
+// Tombol login & logout
+document.getElementById("btnLogin").addEventListener("click", login);
+document.getElementById("btnLogout").addEventListener("click", logout);
+
+// Tombol fungsi utama
+document.getElementById("btnTambah").addEventListener("click", tambahBaris);
+document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
+document.getElementById("btnExport").addEventListener("click", eksporExcel);
+document.getElementById("btnReset").addEventListener("click", resetData);
+
+// Tombol filter
+document.getElementById("btnCari").addEventListener("click", tampilkanData);
+document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
+
+// Tampilkan tombol logout jika login
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("btnLogin").classList.add("hidden");
+    document.getElementById("btnLogout").classList.remove("hidden");
+  } else {
+    document.getElementById("btnLogin").classList.remove("hidden");
+    document.getElementById("btnLogout").classList.add("hidden");
+  }
+});
+
 
