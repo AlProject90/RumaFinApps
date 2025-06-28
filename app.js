@@ -79,29 +79,41 @@ function tampilkanData() {
   const search = document.getElementById("searchInput").value.toLowerCase();
   const bulanFilter = document.getElementById("filterBulan").value;
   const tahunFilter = document.getElementById("filterTahun").value;
-  const startDate = document.getElementById("startDate").value ? new Date(document.getElementById("startDate").value) : null;
-  const endDate = document.getElementById("endDate").value ? new Date(document.getElementById("endDate").value) : null;
+  const startDateValue = document.getElementById("startDate").value;
+  const endDateValue = document.getElementById("endDate").value;
 
-  const dataFiltered = data.map((item, index) => ({ ...item, index })).filter(item => {
-  const tgl = new Date(item.tanggal);
-  const bulan = tgl.getMonth();
-  const tahun = tgl.getFullYear();
+  const startDate = startDateValue ? new Date(startDateValue) : null;
+  const endDate = endDateValue ? new Date(endDateValue) : null;
 
-  if (search && !(item.kategori.toLowerCase().includes(search) || (item.keterangan || '').toLowerCase().includes(search))) {
-    return false;
-  }
+  const dataFiltered = data
+    .map((item, index) => ({ ...item, index }))
+    .filter(item => {
+      const tgl = new Date(item.tanggal);
+      const bulan = tgl.getMonth();
+      const tahun = tgl.getFullYear();
 
-  if (bulanFilter !== "" && bulan != bulanFilter) return false;
-  if (tahunFilter && tahun != tahunFilter) return false;
+      // Filter teks pencarian
+      if (
+        search &&
+        !(item.kategori?.toLowerCase().includes(search) ||
+          item.keterangan?.toLowerCase().includes(search))
+      ) return false;
 
-  // 👇 Tambahkan pengecekan valid dan banding tanggal
-  if (startDate && tgl.toString() !== "Invalid Date" && tgl < startDate) return false;
-  if (endDate && tgl.toString() !== "Invalid Date" && tgl > endDate) return false;
+      // Filter bulan
+      if (bulanFilter !== "" && bulan !== parseInt(bulanFilter)) return false;
 
-  return true;
-});
+      // Filter tahun
+      if (tahunFilter && tahun !== parseInt(tahunFilter)) return false;
+
+      // Filter range tanggal
+      if (startDate && tgl < startDate) return false;
+      if (endDate && tgl > endDate) return false;
+
+      return true;
+    });
 
   const bulanTerpilih = bulanFilter !== "" ? [parseInt(bulanFilter)] : [...Array(12).keys()];
+
   bulanTerpilih.forEach(i => {
     const card = document.createElement("div");
     card.className = "bg-white p-4 rounded shadow-md mb-4";
