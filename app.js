@@ -192,8 +192,9 @@ function resetFilter() {
   tampilkanData();
 }
 
-// Tambah opsi "Semua Bulan" saat halaman dimuat
+// Tambah opsi bulan saat halaman dimuat + Event Listener tombol
 window.addEventListener("DOMContentLoaded", () => {
+  // Tambah opsi "Semua Bulan"
   const bulanSelect = document.getElementById("filterBulan");
   const optionAll = document.createElement("option");
   optionAll.value = "";
@@ -206,59 +207,42 @@ window.addEventListener("DOMContentLoaded", () => {
     option.textContent = NAMA_BULAN[i];
     bulanSelect.appendChild(option);
   }
-});
-// Event Listener Tombol
-window.addEventListener("DOMContentLoaded", () => {
-  // Tombol Login dan Logout
+
+  // Semua tombol aktif
   document.getElementById("btnLogin").addEventListener("click", login);
   document.getElementById("btnLogout").addEventListener("click", logout);
-
-  // Tombol Input, Simpan, Export, Reset
   document.getElementById("btnTambah").addEventListener("click", tambahBaris);
   document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
   document.getElementById("btnExport").addEventListener("click", eksporExcel);
   document.getElementById("btnReset").addEventListener("click", resetData);
-
-  // Filter
   document.getElementById("btnCari").addEventListener("click", tampilkanData);
   document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
 });
 
-// Tampilkan tombol Logout saat login
+// Listener login/logout (cukup 1x)
 auth.onAuthStateChanged(user => {
+  const loginBtn = document.getElementById("btnLogin");
+  const logoutBtn = document.getElementById("btnLogout");
+  const userName = document.getElementById("userName");
+
   if (user) {
-    document.getElementById("btnLogin").classList.add("hidden");
-    document.getElementById("btnLogout").classList.remove("hidden");
+    loginBtn.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
+    userName.textContent = `👋 Halo, ${user.displayName}`;
+    database.ref("pengeluaran/" + user.uid).once("value").then(snapshot => {
+      data = snapshot.val() || [];
+      tampilkanData();
+      hitungSisa();
+    });
   } else {
-    document.getElementById("btnLogin").classList.remove("hidden");
-    document.getElementById("btnLogout").classList.add("hidden");
+    loginBtn.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
+    userName.textContent = "";
+    data = [];
+    tampilkanData();
+    hitungSisa();
   }
 });
-// ========== AKTIFKAN SEMUA TOMBOL ==========
 
-// Tombol login & logout
-document.getElementById("btnLogin").addEventListener("click", login);
-document.getElementById("btnLogout").addEventListener("click", logout);
-
-// Tombol fungsi utama
-document.getElementById("btnTambah").addEventListener("click", tambahBaris);
-document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
-document.getElementById("btnExport").addEventListener("click", eksporExcel);
-document.getElementById("btnReset").addEventListener("click", resetData);
-
-// Tombol filter
-document.getElementById("btnCari").addEventListener("click", tampilkanData);
-document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
-
-// Tampilkan tombol logout jika login
-auth.onAuthStateChanged(user => {
-  if (user) {
-    document.getElementById("btnLogin").classList.add("hidden");
-    document.getElementById("btnLogout").classList.remove("hidden");
-  } else {
-    document.getElementById("btnLogin").classList.remove("hidden");
-    document.getElementById("btnLogout").classList.add("hidden");
-  }
-});
 
 
