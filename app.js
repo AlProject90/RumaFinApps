@@ -222,14 +222,24 @@ auth.onAuthStateChanged(user => {
     logoutBtn.classList.remove("hidden");
     userName.textContent = `👋 Halo, ${user.displayName}`;
 
+    // Ambil data dari Firebase
     database.ref("pengeluaran/" + user.uid).once("value").then(snapshot => {
       const val = snapshot.val() || {};
+      console.log("📥 Data dari Firebase:", val); // Debug
       penghasilan = val.penghasilan || 0;
-      data = val.data || [];
+      data = Array.isArray(val.data) ? val.data : []; // Pastikan data array
+
+      // Tampilkan ke input
       document.getElementById("penghasilan").value = penghasilan;
+
+      // Tampilkan semua data ke halaman
       tampilkanData();
+      hitungSisa();
+    }).catch(error => {
+      console.error("❌ Gagal mengambil data dari Firebase:", error);
     });
   } else {
+    // Reset semua saat logout
     loginBtn.classList.remove("hidden");
     logoutBtn.classList.add("hidden");
     userName.textContent = "";
@@ -237,5 +247,6 @@ auth.onAuthStateChanged(user => {
     penghasilan = 0;
     document.getElementById("penghasilan").value = 0;
     tampilkanData();
+    hitungSisa();
   }
 });
