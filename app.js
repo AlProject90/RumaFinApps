@@ -1,4 +1,4 @@
-// Konfigurasi Firebase
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyCtXSM2NOuH4ruhasx7O7rzxTxxKfYdTts",
   authDomain: "rumafinapps.firebaseapp.com",
@@ -8,46 +8,29 @@ const firebaseConfig = {
   appId: "1:456685667439:web:f1254845968302a084f99a"
 };
 
-// Inisialisasi Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
-const NAMA_BULAN = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
+const NAMA_BULAN = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
 let data = [];
 
-// Login Google
-function login() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider)
-    .then(result => {
-      const user = result.user;
-      document.getElementById("userName").textContent = `👋 Halo, ${user.displayName}`;
-      document.getElementById("btnLogin").classList.add("hidden");
-      document.getElementById("btnLogout").classList.remove("hidden");
-    })
-    .catch(error => alert("Login gagal: " + error.message));
-}
+document.getElementById("btnLogin").addEventListener("click", login);
+document.getElementById("btnLogout").addEventListener("click", logout);
+document.getElementById("btnTambah").addEventListener("click", tambahBaris);
+document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
+document.getElementById("btnExport").addEventListener("click", eksporExcel);
+document.getElementById("btnReset").addEventListener("click", resetData);
+document.getElementById("btnCari").addEventListener("click", tampilkanData);
+document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
 
-// Logout
-function logout() {
-  auth.signOut().then(() => {
-    document.getElementById("userName").textContent = "";
-    document.getElementById("btnLogin").classList.remove("hidden");
-    document.getElementById("btnLogout").classList.add("hidden");
-    data = [];
-    tampilkanData();
-    hitungSisa();
-    alert("Berhasil logout.");
-  });
-}
-
-// Listener login
 auth.onAuthStateChanged(user => {
+  const loginBtn = document.getElementById("btnLogin");
+  const logoutBtn = document.getElementById("btnLogout");
   if (user) {
     document.getElementById("userName").textContent = `👋 Halo, ${user.displayName}`;
-    document.getElementById("btnLogin").classList.add("hidden");
-    document.getElementById("btnLogout").classList.remove("hidden");
+    loginBtn.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
     database.ref("pengeluaran/" + user.uid).once("value").then(snapshot => {
       data = snapshot.val() || [];
       tampilkanData();
@@ -55,13 +38,23 @@ auth.onAuthStateChanged(user => {
     });
   } else {
     document.getElementById("userName").textContent = "";
+    loginBtn.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
     data = [];
     tampilkanData();
     hitungSisa();
   }
 });
 
-// Tambah baris input data
+function login() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(error => alert("Login gagal: " + error.message));
+}
+
+function logout() {
+  auth.signOut();
+}
+
 function tambahBaris() {
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -74,7 +67,6 @@ function tambahBaris() {
   document.getElementById("inputRows").appendChild(row);
 }
 
-// Simpan semua data ke Firebase
 function simpanSemua() {
   const rows = document.querySelectorAll("#inputRows tr");
   rows.forEach(row => {
@@ -93,7 +85,6 @@ function simpanSemua() {
   hitungSisa();
 }
 
-// Hitung sisa uang
 function hitungSisa() {
   const penghasilan = Number(document.getElementById("penghasilan").value);
   const total = data.reduce((sum, item) => sum + Number(item.nominal), 0);
@@ -102,7 +93,6 @@ function hitungSisa() {
   document.getElementById("sisaUang").value = `Rp ${sisa.toLocaleString("id-ID")}`;
 }
 
-// Tampilkan data pengeluaran per bulan
 function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
@@ -170,7 +160,6 @@ function tampilkanData() {
   });
 }
 
-// Ekspor data ke Excel
 function eksporExcel() {
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
@@ -178,7 +167,6 @@ function eksporExcel() {
   XLSX.writeFile(wb, "pengeluaran_rumah_tangga.xlsx");
 }
 
-// Reset semua data
 function resetData() {
   if (confirm("Yakin ingin menghapus semua data?")) {
     const user = auth.currentUser;
@@ -189,14 +177,12 @@ function resetData() {
   }
 }
 
-// Simpan ke database Firebase
 function simpanKeDatabase(data) {
   const user = auth.currentUser;
   if (!user) return;
   database.ref("pengeluaran/" + user.uid).set(data);
 }
 
-// Reset semua filter
 function resetFilter() {
   document.getElementById("searchInput").value = "";
   document.getElementById("filterBulan").value = "";
@@ -206,15 +192,18 @@ function resetFilter() {
   tampilkanData();
 }
 
-// Pasang event listener setelah DOM siap
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("btnLogin").addEventListener("click", login);
-  document.getElementById("btnLogout").addEventListener("click", logout);
-  document.getElementById("btnTambah").addEventListener("click", tambahBaris);
-  document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
-  document.getElementById("btnExport").addEventListener("click", eksporExcel);
-  document.getElementById("btnReset").addEventListener("click", resetData);
-  document.getElementById("btnResetFilter").addEventListener("click", resetFilter);
-  document.getElementById("btnCari").addEventListener("click", tampilkanData);
-  document.getElementById("penghasilan").addEventListener("input", hitungSisa);
+// Tambah opsi "Semua Bulan" saat halaman dimuat
+window.addEventListener("DOMContentLoaded", () => {
+  const bulanSelect = document.getElementById("filterBulan");
+  const optionAll = document.createElement("option");
+  optionAll.value = "";
+  optionAll.textContent = "Semua Bulan";
+  bulanSelect.appendChild(optionAll);
+
+  for (let i = 0; i < 12; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = NAMA_BULAN[i];
+    bulanSelect.appendChild(option);
+  }
 });
