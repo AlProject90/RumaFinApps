@@ -49,21 +49,27 @@
     </div>
 
     <!-- Tombol dan Filter -->
+    <div class="bg-white p-4 rounded shadow-md mb-6">
+      <h2 class="text-lg font-semibold text-indigo-700 mb-4">🔍 Filter Data</h2>
+      <div class="flex flex-wrap gap-2 items-end">
+        <input type="text" id="searchInput" placeholder="Cari semua data..." class="p-2 border rounded w-40" />
+        <select id="filterBulan" class="p-2 border rounded w-40"></select>
+        <select id="filterBulanAkhir" class="p-2 border rounded w-40"></select>
+        <input type="number" id="filterTahun" placeholder="Tahun (2025)" class="p-2 border rounded w-32">
+        <input type="date" id="startDate" class="p-2 border rounded">
+        <input type="date" id="endDate" class="p-2 border rounded">
+        <button id="btnCari" class="bg-indigo-600 text-white px-3 py-2 rounded">🔍 Cari Filter</button>
+        <button id="btnResetFilter" class="bg-gray-500 text-white px-3 py-2 rounded">🔄 Reset Filter</button>
+      </div>
+    </div>
+
+    <!-- Tombol Aksi -->
     <div class="flex flex-wrap justify-between gap-4 mb-4">
       <div class="flex gap-2">
         <button id="btnTambah" class="bg-gray-700 text-white px-4 py-2 rounded">+ Input Data</button>
         <button id="btnSimpan" class="bg-blue-600 text-white px-4 py-2 rounded">Simpan Semua</button>
         <button id="btnExport" class="bg-green-600 text-white px-4 py-2 rounded">📄 Ekspor ke Excel</button>
         <button id="btnReset" class="bg-red-600 text-white px-4 py-2 rounded">🔄 Reset Data</button>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <input type="text" id="searchInput" placeholder="Cari..." class="p-2 border rounded" />
-        <select id="filterBulan" class="p-2 border rounded"></select>
-        <input type="number" id="filterTahun" placeholder="Tahun (2025)" class="p-2 border rounded">
-        <input type="date" id="startDate" class="p-2 border rounded">
-        <input type="date" id="endDate" class="p-2 border rounded">
-        <button id="btnCari" class="bg-indigo-600 text-white px-3 rounded">🔍 Cari</button>
-        <button id="btnResetFilter" class="bg-gray-500 text-white px-3 rounded">🔄 Reset Filter</button>
       </div>
     </div>
 
@@ -89,20 +95,25 @@
 
   <!-- Script Tambah Bulan ke Dropdown Filter -->
   <script>
-    const bulanSelect = document.getElementById('filterBulan');
-    const allOption = document.createElement('option');
-    allOption.value = "";
-    allOption.textContent = "Semua Bulan";
-    bulanSelect.appendChild(allOption);
-    for (let i = 0; i < 12; i++) {
-      const option = document.createElement('option');
-      option.value = i;
-      option.textContent = new Date(0, i).toLocaleString('id', { month: 'long' });
-      bulanSelect.appendChild(option);
+    function isiBulanSelect(id) {
+      const select = document.getElementById(id);
+      select.innerHTML = '';
+      const allOption = document.createElement('option');
+      allOption.value = "";
+      allOption.textContent = "Semua Bulan";
+      select.appendChild(allOption);
+      for (let i = 0; i < 12; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = new Date(0, i).toLocaleString('id', { month: 'long' });
+        select.appendChild(option);
+      }
     }
+    isiBulanSelect('filterBulan');
+    isiBulanSelect('filterBulanAkhir');
   </script>
 
   <!-- Aplikasi -->
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

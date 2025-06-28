@@ -76,45 +76,32 @@ function tampilkanData() {
   container.innerHTML = "";
 
   const totalPerBulan = Array(12).fill(0);
+
   const search = document.getElementById("searchInput").value.toLowerCase();
-  const bulanFilter = document.getElementById("filterBulan").value;
+  const bulanAwal = parseInt(document.getElementById("filterBulan").value);
+  const bulanAkhir = parseInt(document.getElementById("filterBulanAkhir")?.value);
   const tahunFilter = document.getElementById("filterTahun").value;
-  const startDateValue = document.getElementById("startDate").value;
-  const endDateValue = document.getElementById("endDate").value;
+  const startDate = document.getElementById("startDate").value ? new Date(document.getElementById("startDate").value) : null;
+  const endDate = document.getElementById("endDate").value ? new Date(document.getElementById("endDate").value) : null;
 
-  const startDate = startDateValue ? new Date(startDateValue) : null;
-  const endDate = endDateValue ? new Date(endDateValue) : null;
+  const dataFiltered = data.map((item, index) => ({ ...item, index })).filter(item => {
+    const tgl = new Date(item.tanggal);
+    const bulan = tgl.getMonth();
+    const tahun = tgl.getFullYear();
 
-  const dataFiltered = data
-    .map((item, index) => ({ ...item, index }))
-    .filter(item => {
-      const tgl = new Date(item.tanggal);
-      const bulan = tgl.getMonth();
-      const tahun = tgl.getFullYear();
+    if (search && !(item.kategori.toLowerCase().includes(search) || (item.keterangan || "").toLowerCase().includes(search))) return false;
+    if (!isNaN(bulanAwal) && bulan < bulanAwal) return false;
+    if (!isNaN(bulanAkhir) && bulan > bulanAkhir) return false;
+    if (tahunFilter && tahun != parseInt(tahunFilter)) return false;
+    if (startDate && tgl < startDate) return false;
+    if (endDate && tgl > endDate) return false;
 
-      // Filter teks pencarian
-      if (
-        search &&
-        !(item.kategori?.toLowerCase().includes(search) ||
-          item.keterangan?.toLowerCase().includes(search))
-      ) return false;
+    return true;
+  });
 
-      // Filter bulan
-      if (bulanFilter !== "" && bulan !== parseInt(bulanFilter)) return false;
+  const bulanUnik = [...new Set(dataFiltered.map(item => new Date(item.tanggal).getMonth()))];
 
-      // Filter tahun
-      if (tahunFilter && tahun !== parseInt(tahunFilter)) return false;
-
-      // Filter range tanggal
-      if (startDate && tgl < startDate) return false;
-      if (endDate && tgl > endDate) return false;
-
-      return true;
-    });
-
-  const bulanTerpilih = bulanFilter !== "" ? [parseInt(bulanFilter)] : [...Array(12).keys()];
-
-  bulanTerpilih.forEach(i => {
+  bulanUnik.forEach(i => {
     const card = document.createElement("div");
     card.className = "bg-white p-4 rounded shadow-md mb-4";
     card.innerHTML = `
