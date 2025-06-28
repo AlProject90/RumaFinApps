@@ -96,6 +96,7 @@ function hitungSisa() {
 function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
+
   const totalPerBulan = Array(12).fill(0);
 
   const search = document.getElementById("searchInput")?.value.toLowerCase() || "";
@@ -104,9 +105,25 @@ function tampilkanData() {
   const startDate = document.getElementById("startDate")?.value ? new Date(document.getElementById("startDate").value) : null;
   const endDate = document.getElementById("endDate")?.value ? new Date(document.getElementById("endDate").value) : null;
 
-  for (let i = 0; i < 12; i++) {
+  const dataFiltered = data.filter(item => {
+    const tgl = new Date(item.tanggal);
+    const bulan = tgl.getMonth();
+    const tahun = tgl.getFullYear();
+
+    if (search && !(item.kategori.toLowerCase().includes(search) || item.keterangan?.toLowerCase().includes(search))) return false;
+    if (bulanFilter !== "" && bulan != bulanFilter) return false;
+    if (tahunFilter && tahun != tahunFilter) return false;
+    if (startDate && tgl < startDate) return false;
+    if (endDate && tgl > endDate) return false;
+
+    return true;
+  });
+
+  const bulanTerpilih = bulanFilter !== "" ? [parseInt(bulanFilter)] : [...Array(12).keys()];
+
+  bulanTerpilih.forEach(i => {
     const card = document.createElement("div");
-    card.className = "bg-white p-4 rounded shadow-md";
+    card.className = "bg-white p-4 rounded shadow-md mb-4";
     card.dataset.bulan = i;
     card.innerHTML = `
       <h2 class="text-lg font-semibold text-indigo-700 mb-2">${NAMA_BULAN[i]}</h2>
@@ -130,19 +147,9 @@ function tampilkanData() {
       </table>
     `;
     container.appendChild(card);
-  }
+  });
 
-  data.filter(item => {
-    const tgl = new Date(item.tanggal);
-    const bulan = tgl.getMonth();
-    const tahun = tgl.getFullYear();
-    if (search && !(item.kategori.toLowerCase().includes(search) || item.keterangan?.toLowerCase().includes(search))) return false;
-    if (bulanFilter !== "" && bulan != bulanFilter) return false;
-    if (tahunFilter && tahun != tahunFilter) return false;
-    if (startDate && tgl < startDate) return false;
-    if (endDate && tgl > endDate) return false;
-    return true;
-  }).forEach(item => {
+  dataFiltered.forEach(item => {
     const bulan = new Date(item.tanggal).getMonth();
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -151,12 +158,18 @@ function tampilkanData() {
       <td class="border p-1">Rp ${Number(item.nominal).toLocaleString("id-ID")}</td>
       <td class="border p-1">${item.keterangan || '-'}</td>
     `;
-    document.getElementById(`bulan-${bulan}`).appendChild(tr);
-    totalPerBulan[bulan] += Number(item.nominal);
+    const tbody = document.getElementById(`bulan-${bulan}`);
+    if (tbody) {
+      tbody.appendChild(tr);
+      totalPerBulan[bulan] += Number(item.nominal);
+    }
   });
 
   totalPerBulan.forEach((total, i) => {
-    document.getElementById(`total-${i}`).textContent = `Rp ${total.toLocaleString("id-ID")}`;
+    const td = document.getElementById(`total-${i}`);
+    if (td) {
+      td.textContent = `Rp ${total.toLocaleString("id-ID")}`;
+    }
   });
 }
 
