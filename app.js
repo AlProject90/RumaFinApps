@@ -61,16 +61,14 @@ function hitungSisa() {
   document.getElementById("sisaUang").value = `Rp ${sisa.toLocaleString("id-ID")}`;
 }
 
-function simpanKeDatabase() {
+function simpanKeDatabase(dataBaru) {
   const user = auth.currentUser;
   if (user) {
-    database.ref("pengeluaran/" + user.uid).set({
-      data: data,
-      penghasilan: penghasilan
-    });
+    database.ref("pengeluaran/" + user.uid).set(dataBaru);
   }
   hitungSisa();
 }
+
 
 function tampilkanData() {
   const container = document.getElementById("bulanContainer");
@@ -249,19 +247,29 @@ auth.onAuthStateChanged(user => {
     loginBtn.classList.add("hidden");
     logoutBtn.classList.remove("hidden");
     userName.textContent = `👋 Halo, ${user.displayName}`;
+
+    // Ambil data dari Firebase
     database.ref("pengeluaran/" + user.uid).once("value").then(snapshot => {
-      const val = snapshot.val() || {};
-      data = val.data || [];
-      penghasilan = val.penghasilan || 0;
-      document.getElementById("penghasilan").value = penghasilan;
+      const val = snapshot.val();
+      // Pastikan val dikonversi ke array
+      if (Array.isArray(val)) {
+        data = val;
+      } else if (val && typeof val === 'object') {
+        data = Object.values(val);
+      } else {
+        data = [];
+      }
+
       tampilkanData();
+      hitungSisa();
     });
   } else {
     loginBtn.classList.remove("hidden");
     logoutBtn.classList.add("hidden");
     userName.textContent = "";
     data = [];
-    penghasilan = 0;
     tampilkanData();
+    hitungSisa();
   }
 });
+
