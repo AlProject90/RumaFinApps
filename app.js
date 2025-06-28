@@ -17,11 +17,11 @@ const NAMA_BULAN = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AG
 let data = [];
 let penghasilan = 0;
 
-// Login dan Logout
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(error => alert("Login gagal: " + error.message));
 }
+
 function logout() {
   auth.signOut();
 }
@@ -218,6 +218,7 @@ function resetData() {
 function resetFilter() {
   document.getElementById("searchInput").value = "";
   document.getElementById("filterBulan").value = "";
+  document.getElementById("filterBulanAkhir").value = "";
   document.getElementById("filterTahun").value = "";
   document.getElementById("startDate").value = "";
   document.getElementById("endDate").value = "";
@@ -261,8 +262,8 @@ auth.onAuthStateChanged(user => {
     database.ref("pengeluaran/" + user.uid).once("value").then(snapshot => {
       const val = snapshot.val() || {};
       console.log("📥 Data dari Firebase:", val);
-      data = val.data || [];
-      penghasilan = val.penghasilan || 0;
+      data = Array.isArray(val.data) ? val.data : [];
+      penghasilan = typeof val.penghasilan === "number" ? val.penghasilan : Number(val.penghasilan || 0);
       document.getElementById("penghasilan").value = penghasilan;
       tampilkanData();
       hitungSisa();
