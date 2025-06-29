@@ -3,80 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>RumaFinApps</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+  <title>RumaFin - Aplikasi Keuangan</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 text-sm">
-  <div class="container mx-auto px-4 py-6">
+<body class="bg-gray-100 min-h-screen p-4">
+  <div class="max-w-5xl mx-auto bg-white shadow-lg p-6 rounded-lg">
     <div class="flex justify-between items-center mb-4">
-      <h1 class="text-xl font-bold text-indigo-700">📊 RumaFinApps</h1>
+      <h1 class="text-2xl font-bold text-indigo-700">📘 RumaFinApps</h1>
       <div>
-        <span id="userName" class="mr-3 text-gray-700"></span>
-        <button id="btnLogin" onclick="login()" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Login</button>
-        <button id="btnLogout" onclick="logout()" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 hidden">Logout</button>
+        <span id="userName" class="mr-4 text-sm text-gray-700"></span>
+        <button id="btnLogin" onclick="login()" class="bg-green-500 text-white px-3 py-1 rounded">Login</button>
+        <button id="btnLogout" onclick="logout()" class="bg-red-500 text-white px-3 py-1 rounded hidden">Logout</button>
       </div>
     </div>
 
-    <!-- Input Penghasilan -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block font-medium text-sm mb-1">Penghasilan (per bulan):</label>
+        <input id="penghasilan" type="number" class="w-full border p-2 rounded" placeholder="Contoh: 5000000">
+      </div>
+      <div>
+        <label class="block font-medium text-sm mb-1">Total Pengeluaran:</label>
+        <input id="totalPengeluaran" class="w-full border p-2 rounded bg-gray-100" readonly />
+      </div>
+      <div>
+        <label class="block font-medium text-sm mb-1">Sisa Uang:</label>
+        <input id="sisaUang" class="w-full border p-2 rounded bg-gray-100" readonly />
+      </div>
+    </div>
+
+    <hr class="my-4"/>
+
     <div class="mb-4">
-      <label for="penghasilan" class="font-semibold mr-2">💰 Penghasilan:</label>
-      <input type="number" id="penghasilan" class="border p-1 rounded w-48" onchange="ubahPenghasilan()" />
-    </div>
-
-    <!-- Filter -->
-    <div class="mb-4 flex flex-wrap gap-2">
-      <input type="text" id="searchInput" placeholder="Cari kategori / keterangan" class="border p-1 rounded w-48">
-      <input type="number" id="filterTahun" placeholder="Tahun" class="border p-1 rounded w-24">
-      <input type="date" id="startDate" class="border p-1 rounded">
-      <input type="date" id="endDate" class="border p-1 rounded">
-      <button onclick="tampilkanData()" class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700">Cari Filter</button>
-      <button onclick="resetFilter()" class="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600">Reset</button>
-    </div>
-
-    <!-- Input Tabel -->
-    <div class="overflow-x-auto mb-4">
-      <table class="min-w-full bg-white border border-gray-300 text-sm">
-        <thead class="bg-indigo-100">
+      <h2 class="text-lg font-semibold mb-2">➕ Input Pengeluaran</h2>
+      <table class="w-full border">
+        <thead class="bg-gray-100 text-sm">
           <tr>
-            <th class="border p-2">Tanggal</th>
-            <th class="border p-2">Kategori</th>
-            <th class="border p-2">Nominal</th>
-            <th class="border p-2">Keterangan</th>
-            <th class="border p-2">Aksi</th>
+            <th class="p-2 border">Tanggal</th>
+            <th class="p-2 border">Kategori</th>
+            <th class="p-2 border">Nominal</th>
+            <th class="p-2 border">Keterangan</th>
+            <th class="p-2 border">Aksi</th>
           </tr>
         </thead>
         <tbody id="inputRows"></tbody>
       </table>
-      <button onclick="tambahBaris()" class="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700">+ Input</button>
-    </div>
-
-    <!-- Aksi -->
-    <div class="flex gap-2 mb-4">
-      <button onclick="simpanSemua()" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">💾 Simpan Semua</button>
-      <button onclick="exportExcel()" class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">📤 Export Excel</button>
-      <button onclick="resetData()" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">♻️ Reset Data</button>
-    </div>
-
-    <!-- Ringkasan -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-      <div>
-        <label>Total Pengeluaran:</label>
-        <input type="text" id="totalPengeluaran" readonly class="w-full border p-1 rounded bg-gray-100"/>
-      </div>
-      <div>
-        <label>Sisa Uang:</label>
-        <input type="text" id="sisaUang" readonly class="w-full border p-1 rounded bg-gray-100"/>
+      <div class="mt-2 flex gap-2">
+        <button onclick="tambahBaris()" class="bg-blue-500 text-white px-4 py-1 rounded">+ Input</button>
+        <button onclick="simpanSemua()" class="bg-green-600 text-white px-4 py-1 rounded">💾 Simpan Semua</button>
+        <button onclick="exportToExcel()" class="bg-yellow-500 text-white px-4 py-1 rounded">⬇️ Export Excel</button>
+        <button onclick="resetData()" class="bg-red-500 text-white px-4 py-1 rounded">🔁 Reset Data</button>
       </div>
     </div>
 
-    <!-- Data Bulanan -->
-    <div id="bulanContainer" class="mt-4"></div>
+    <hr class="my-4"/>
+
+    <div class="mb-4">
+      <h2 class="text-lg font-semibold mb-2">🔎 Filter & Pencarian</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <input id="searchInput" type="text" placeholder="Cari kategori atau keterangan" class="border p-2 rounded">
+        <input id="filterTahun" type="number" placeholder="Filter Tahun (mis. 2025)" class="border p-2 rounded">
+        <input id="startDate" type="date" class="border p-2 rounded">
+        <input id="endDate" type="date" class="border p-2 rounded">
+      </div>
+      <button onclick="tampilkanData()" class="mt-2 bg-indigo-600 text-white px-4 py-1 rounded">🔍 Cari Filter</button>
+    </div>
+
+    <hr class="my-4"/>
+
+    <div id="bulanContainer" class="space-y-4"></div>
   </div>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <!-- App Script -->
   <script src="app.js"></script>
 </body>
 </html>
