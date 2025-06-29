@@ -307,3 +307,41 @@ if (penghasilanInput) {
     hitungSisa();
   });
 }
+// ✅ ... (firebase config dan init tetap sama)
+
+function resetData() {
+  if (confirm("Yakin ingin menghapus SEMUA data? Ini tidak bisa dibatalkan!")) {
+    const user = auth.currentUser;
+    if (user) {
+      database.ref("pengeluaran/" + user.uid).remove()
+        .then(() => {
+          data = {};
+          penghasilan = 0;
+          document.getElementById("penghasilan").value = 0;
+          tampilkanData();
+          hitungSisa();
+          alert("✅ Semua data berhasil dihapus.");
+        })
+        .catch(err => alert("❌ Gagal hapus data: " + err.message));
+    }
+  }
+}
+
+// Fungsi tombol filter data aktif dari HTML
+document.addEventListener("DOMContentLoaded", () => {
+  const cariBtn = document.querySelector("button[onclick='tampilkanData()']");
+  const resetBtn = document.querySelector("button[onclick='resetFilter()']");
+
+  if (cariBtn) cariBtn.addEventListener("click", tampilkanData);
+  if (resetBtn) resetBtn.addEventListener("click", resetFilter);
+});
+
+// Perbarui listener penghasilan (simpan ke Firebase saat berubah)
+const penghasilanInput = document.getElementById("penghasilan");
+if (penghasilanInput) {
+  penghasilanInput.addEventListener("change", e => {
+    penghasilan = Number(e.target.value);
+    simpanKeDatabase();
+    hitungSisa();
+  });
+}
