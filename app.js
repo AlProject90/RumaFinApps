@@ -315,21 +315,16 @@ function exportToExcel() {
       rows.push([
         item.tanggal,
         item.kategori,
-        item.nominal,
+        Number(item.nominal),
         item.keterangan || ""
       ]);
     });
   }
 
-  let csvContent = "data:text/csv;charset=utf-8," 
-    + rows.map(e => e.join(",")).join("\n");
+  const worksheet = XLSX.utils.aoa_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Pengeluaran");
 
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "pengeluaran_rumafin.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  XLSX.writeFile(workbook, "pengeluaran_rumafin.xlsx");
 }
 
