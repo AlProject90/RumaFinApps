@@ -14,7 +14,7 @@ const auth = firebase.auth();
 const database = firebase.database();
 
 const NAMA_BULAN = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
-let data = {}; // key: tanggal, value: array of items
+let data = {};
 let penghasilan = 0;
 
 // 🔐 Login & Logout
@@ -41,6 +41,8 @@ function tambahBaris() {
 
 // 💾 Simpan Semua Input ke Struktur Data dan Firebase
 function simpanSemua() {
+  penghasilan = Number(document.getElementById("penghasilan").value || 0);
+
   const rows = document.querySelectorAll("#inputRows tr");
   rows.forEach(row => {
     const inputs = row.querySelectorAll("input");
@@ -50,9 +52,7 @@ function simpanSemua() {
     const keterangan = inputs[3].value.trim();
 
     if (tanggal && kategori && nominal) {
-      if (!data[tanggal]) {
-        data[tanggal] = [];
-      }
+      if (!data[tanggal]) data[tanggal] = [];
       data[tanggal].push({ kategori, nominal, keterangan });
     }
   });
@@ -69,11 +69,12 @@ function simpanKeDatabase() {
   if (user) {
     database.ref("pengeluaran/" + user.uid).set({
       penghasilan,
-      ...data // spread objek tanggal
+      ...data
     }).then(() => console.log("✅ Data berhasil disimpan"))
       .catch(err => console.error("❌ Gagal menyimpan data:", err));
   }
 }
+
 // 💰 Hitung Sisa Uang
 function hitungSisa() {
   let total = 0;
@@ -87,7 +88,7 @@ function hitungSisa() {
   document.getElementById("sisaUang").value = `Rp ${sisa.toLocaleString("id-ID")}`;
 }
 
-// 📊 Tampilkan Data
+// 🔎 Tampilkan Data ke Halaman
 function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
@@ -99,7 +100,6 @@ function tampilkanData() {
   const endDate = document.getElementById("endDate").value ? new Date(document.getElementById("endDate").value) : null;
 
   const semuaTanggal = Object.keys(data || {}).filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key));
-
   const dataFiltered = [];
 
   semuaTanggal.forEach(tglStr => {
@@ -119,7 +119,6 @@ function tampilkanData() {
         item.kategori?.toLowerCase().includes(search) || 
         item.keterangan?.toLowerCase().includes(search)
       );
-
       if (cocokCari) {
         dataFiltered.push({ ...item, tanggal: tglStr, index: `${tglStr}_${i}` });
       }
@@ -127,7 +126,6 @@ function tampilkanData() {
   });
 
   const grupPerBulan = {};
-
   dataFiltered.forEach(item => {
     const bulan = new Date(item.tanggal).getMonth();
     if (!grupPerBulan[bulan]) grupPerBulan[bulan] = [];
@@ -188,7 +186,6 @@ function tampilkanData() {
 function editData(tanggal, index) {
   const item = data[tanggal][index];
   const row = document.createElement("tr");
-
   row.innerHTML = `
     <td class="border p-1"><input type="date" value="${tanggal}" class="w-full border p-1"></td>
     <td class="border p-1"><input type="text" value="${item.kategori}" class="w-full border p-1"></td>
@@ -198,15 +195,12 @@ function editData(tanggal, index) {
       <button onclick="simpanEdit('${tanggal}', ${index}, this)" class="text-green-600 hover:underline">Simpan</button>
     </td>
   `;
-
-  // Ganti baris di DOM
   const bulan = new Date(tanggal).getMonth();
   const tbody = document.getElementById(`bulan-${bulan}`);
   const rowEls = Array.from(tbody.children);
   tbody.replaceChild(row, rowEls[index]);
 }
 
-// 💾 Simpan Hasil Edit
 function simpanEdit(tanggal, index, button) {
   const row = button.closest("tr");
   const inputs = row.querySelectorAll("input");
@@ -237,7 +231,8 @@ function hapusData(tanggal, index) {
     }
   }
 }
-// 🔄 Ambil Data dari Firebase saat Login
+
+// 🔄 Ambil Data dari Firebase
 async function loadDataDariDatabase() {
   const user = auth.currentUser;
   if (!user) return;
@@ -245,16 +240,12 @@ async function loadDataDariDatabase() {
   try {
     const snapshot = await database.ref("pengeluaran/" + user.uid).once("value");
     const val = snapshot.val();
-
     if (val) {
       penghasilan = val.penghasilan || 0;
       document.getElementById("penghasilan").value = penghasilan;
-
       data = {};
-
       Object.entries(val).forEach(([key, value]) => {
-        if (key === "penghasilan") return;
-        if (Array.isArray(value)) {
+        if (key !== "penghasilan" && Array.isArray(value)) {
           data[key] = value;
         }
       });
@@ -263,16 +254,14 @@ async function loadDataDariDatabase() {
       penghasilan = 0;
       document.getElementById("penghasilan").value = 0;
     }
-
     tampilkanData();
     hitungSisa();
-
   } catch (err) {
-    console.error("❌ Gagal mengambil data dari Firebase:", err);
+    console.error("❌ Gagal mengambil data:", err);
   }
 }
 
-// 🔔 Pantau Perubahan Login
+// 🔁 Status Login
 auth.onAuthStateChanged(async user => {
   const loginBtn = document.getElementById("btnLogin");
   const logoutBtn = document.getElementById("btnLogout");

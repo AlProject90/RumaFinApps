@@ -3,78 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>RumaFin - Aplikasi Keuangan</title>
+  <title>RumaFinApps</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 text-gray-800">
-  <div class="max-w-5xl mx-auto py-8 px-4">
+<body class="bg-gray-100 min-h-screen p-4">
+  <div class="max-w-6xl mx-auto bg-white p-6 rounded shadow-md">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-indigo-700">RumaFin - Catatan Keuangan</h1>
-      <div class="flex items-center gap-3">
-        <span id="userName" class="text-sm text-gray-600"></span>
-        <button id="btnLogin" onclick="login()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">Login</button>
-        <button id="btnLogout" onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded hidden">Logout</button>
+      <h1 class="text-2xl font-bold text-indigo-700">RumaFinApps</h1>
+      <div class="space-x-2">
+        <button id="btnLogin" onclick="login()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Login Google</button>
+        <button id="btnLogout" onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 hidden">Logout</button>
+      </div>
+    </div>
+    <p id="userName" class="text-gray-600 mb-4"></p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div>
+        <label class="block text-sm font-medium mb-1">Penghasilan:</label>
+        <input id="penghasilan" type="number" class="w-full border p-2 rounded" placeholder="0">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Total Pengeluaran:</label>
+        <input id="totalPengeluaran" type="text" class="w-full border p-2 rounded bg-gray-100" disabled>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Sisa Uang:</label>
+        <input id="sisaUang" type="text" class="w-full border p-2 rounded bg-gray-100" disabled>
       </div>
     </div>
 
-    <!-- 🔢 Penghasilan, Total, Sisa -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <div>
-        <label class="block font-medium mb-1">Penghasilan:</label>
-        <input type="number" id="penghasilan" class="w-full border p-2 rounded" placeholder="Masukkan penghasilan..." />
-      </div>
-      <div>
-        <label class="block font-medium mb-1">Total Pengeluaran:</label>
-        <input type="text" id="totalPengeluaran" class="w-full border p-2 rounded bg-gray-100" readonly />
-      </div>
-      <div>
-        <label class="block font-medium mb-1">Sisa Uang:</label>
-        <input type="text" id="sisaUang" class="w-full border p-2 rounded bg-gray-100" readonly />
-      </div>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <input type="text" id="searchInput" placeholder="🔍 Cari kategori/keterangan..." class="border px-2 py-1 rounded w-full sm:w-auto">
+      <input type="number" id="filterTahun" placeholder="Filter Tahun (opsional)" class="border px-2 py-1 rounded w-full sm:w-auto">
+      <input type="date" id="startDate" class="border px-2 py-1 rounded w-full sm:w-auto">
+      <input type="date" id="endDate" class="border px-2 py-1 rounded w-full sm:w-auto">
+      <button onclick="tampilkanData()" class="bg-indigo-500 text-white px-4 py-1 rounded hover:bg-indigo-600">🔎 Cari</button>
+      <button onclick="resetFilter()" class="bg-gray-300 text-gray-800 px-4 py-1 rounded hover:bg-gray-400">Reset Filter</button>
     </div>
 
-    <!-- 🔎 Filter -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-      <input type="text" id="searchInput" placeholder="Cari kategori/keterangan..." class="border p-2 rounded w-full" />
-      <input type="number" id="filterTahun" placeholder="Filter Tahun" class="border p-2 rounded w-full" />
-      <input type="date" id="startDate" class="border p-2 rounded w-full" />
-      <input type="date" id="endDate" class="border p-2 rounded w-full" />
-    </div>
-    <div class="mb-4">
-      <button onclick="tampilkanData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mr-2">🔍 Cari Filter</button>
-      <button onclick="resetFilter()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">🔁 Reset Filter</button>
-    </div>
-
-    <!-- 🧾 Input Tabel -->
-    <div class="overflow-x-auto mb-6">
-      <table class="min-w-full text-sm text-gray-800 border">
-        <thead class="bg-gray-200">
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold text-indigo-700 mb-2">Tambah Pengeluaran</h2>
+      <table class="w-full mb-2">
+        <thead class="bg-gray-200 text-sm">
           <tr>
-            <th class="border p-2">Tanggal</th>
-            <th class="border p-2">Kategori</th>
-            <th class="border p-2">Nominal</th>
-            <th class="border p-2">Keterangan</th>
-            <th class="border p-2">Aksi</th>
+            <th class="p-2 border">Tanggal</th>
+            <th class="p-2 border">Kategori</th>
+            <th class="p-2 border">Nominal</th>
+            <th class="p-2 border">Keterangan</th>
+            <th class="p-2 border">Aksi</th>
           </tr>
         </thead>
-        <tbody id="inputRows"></tbody>
+        <tbody id="inputRows" class="text-sm"></tbody>
       </table>
-    </div>
-    <div class="mb-6 flex flex-wrap gap-3">
-      <button onclick="tambahBaris()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">➕ Tambah Baris</button>
-      <button onclick="simpanSemua()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">💾 Simpan Semua</button>
-      <button onclick="exportExcel()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">📤 Export Excel</button>
-      <button onclick="resetData()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">🗑 Reset Data</button>
+      <div class="space-x-2">
+        <button onclick="tambahBaris()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">+ Input</button>
+        <button onclick="simpanSemua()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">💾 Simpan Semua</button>
+        <button onclick="eksporExcel()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">📤 Ekspor Excel</button>
+        <button onclick="resetData()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">♻ Reset Data</button>
+      </div>
     </div>
 
-    <!-- 📆 Output Data -->
-    <div id="bulanContainer"></div>
+    <div id="bulanContainer" class="mt-6"></div>
   </div>
 
-  <!-- 🔗 Script -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  
+  <!-- App JS -->
   <script src="app.js"></script>
+  
+  <!-- Ekspor Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    function eksporExcel() {
+      const wb = XLSX.utils.book_new();
+      const rows = [["Tanggal", "Kategori", "Nominal", "Keterangan"]];
+      for (const tanggal in data) {
+        for (const item of data[tanggal]) {
+          rows.push([tanggal, item.kategori, item.nominal, item.keterangan]);
+        }
+      }
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, "Pengeluaran");
+      XLSX.writeFile(wb, "data_pengeluaran.xlsx");
+    }
+
+    function resetData() {
+      if (confirm("Yakin ingin menghapus semua data?")) {
+        const user = firebase.auth().currentUser;
+        if (user) {
+          firebase.database().ref("pengeluaran/" + user.uid).remove().then(() => {
+            alert("Data berhasil dihapus");
+            data = {};
+            penghasilan = 0;
+            document.getElementById("penghasilan").value = 0;
+            tampilkanData();
+            hitungSisa();
+          });
+        }
+      }
+    }
+
+    function resetFilter() {
+      document.getElementById("searchInput").value = "";
+      document.getElementById("filterTahun").value = "";
+      document.getElementById("startDate").value = "";
+      document.getElementById("endDate").value = "";
+      tampilkanData();
+    }
+  </script>
 </body>
 </html>
