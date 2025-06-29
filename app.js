@@ -1,10 +1,21 @@
-// ... [✅ Firebase config dan inisialisasi tetap seperti sebelumnya] ...
+// 🔧 File app.js versi lengkap dan diperbaiki untuk RumaFin
+
+// ✅ Firebase config kamu di sini:
+const firebaseConfig = {
+  apiKey: "AIzaSyCtXSM2NOuH4ruhasx7O7rzxTxxKfYdTts",
+  authDomain: "rumafinapps.firebaseapp.com",
+  databaseURL: "https://rumafinapps-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rumafinapps",
+  storageBucket: "rumafinapps.firebasestorage.app",
+  messagingSenderId: "456685667439",
+  appId: "1:456685667439:web:f1254845968302a084f99a"
+};
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
-const NAMA_BULAN = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
+const NAMA_BULAN = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
 let data = [];
 let penghasilan = 0;
 
@@ -13,11 +24,61 @@ function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(error => alert("Login gagal: " + error.message));
 }
+
 function logout() {
   auth.signOut();
 }
 
-// ✅ Tambah Baris
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("btnLogin").classList.add("hidden");
+    document.getElementById("btnLogout").classList.remove("hidden");
+    document.getElementById("userName").textContent = "👋 Hai, " + user.displayName;
+    loadData();
+  } else {
+    document.getElementById("btnLogin").classList.remove("hidden");
+    document.getElementById("btnLogout").classList.add("hidden");
+    document.getElementById("userName").textContent = "";
+    data = [];
+    penghasilan = 0;
+    tampilkanData();
+    hitungSisa();
+  }
+});
+
+// ✅ Event Listener
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btnLogin").addEventListener("click", login);
+  document.getElementById("btnLogout").addEventListener("click", logout);
+  document.getElementById("btnTambah").addEventListener("click", tambahBaris);
+  document.getElementById("btnSimpan").addEventListener("click", simpanSemua);
+  document.getElementById("btnExport").addEventListener("click", eksporExcel);
+  document.getElementById("btnReset").addEventListener("click", () => {
+    if (confirm("Yakin ingin reset semua data?")) {
+      data = [];
+      simpanKeDatabase();
+      tampilkanData();
+      hitungSisa();
+    }
+  });
+  document.getElementById("btnCari").addEventListener("click", tampilkanData);
+  document.getElementById("btnResetFilter").addEventListener("click", () => {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("filterBulan").value = "";
+    document.getElementById("filterBulanAkhir").value = "";
+    document.getElementById("filterTahun").value = "";
+    document.getElementById("startDate").value = "";
+    document.getElementById("endDate").value = "";
+    tampilkanData();
+  });
+  document.getElementById("btnEditPenghasilan").addEventListener("click", () => {
+    penghasilan = Number(document.getElementById("penghasilan").value);
+    simpanKeDatabase();
+    hitungSisa();
+  });
+});
+
+// ✅ Fungsi Tambah
 function tambahBaris() {
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -30,7 +91,7 @@ function tambahBaris() {
   document.getElementById("inputRows").appendChild(row);
 }
 
-// ✅ Simpan ke Database
+// ✅ Simpan Semua
 function simpanSemua() {
   const rows = document.querySelectorAll("#inputRows tr");
   const tempData = [];
@@ -62,7 +123,23 @@ function simpanKeDatabase() {
   }
 }
 
-// ✅ Hitung Sisa
+function loadData() {
+  const user = auth.currentUser;
+  if (user) {
+    database.ref("pengeluaran/" + user.uid).once("value", snapshot => {
+      const val = snapshot.val();
+      if (val) {
+        penghasilan = val.penghasilan || 0;
+        data = val.data || [];
+        document.getElementById("penghasilan").value = penghasilan;
+        tampilkanData();
+        hitungSisa();
+      }
+    });
+  }
+}
+
+// ✅ Hitung
 function hitungSisa() {
   const total = data.reduce((sum, item) => sum + Number(item.nominal), 0);
   const sisa = penghasilan - total;
@@ -75,7 +152,6 @@ function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
 
-  const totalPerBulan = Array(12).fill(0);
   const search = document.getElementById("searchInput").value.toLowerCase();
   const bulanAwal = parseInt(document.getElementById("filterBulan").value);
   const bulanAkhir = parseInt(document.getElementById("filterBulanAkhir").value);
@@ -128,5 +204,42 @@ function tampilkanData() {
     container.appendChild(card);
   });
 
+  const totalPerBulan = Array(12).fill(0);
+
   dataFiltered.forEach(item => {
-    const bulan = new
+    const tgl = new Date(item.tanggal);
+    const bulan = tgl.getMonth();
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="border p-2">${item.tanggal}</td>
+      <td class="border p-2">${item.kategori}</td>
+      <td class="border p-2">Rp ${Number(item.nominal).toLocaleString("id-ID")}</td>
+      <td class="border p-2">${item.keterangan || "-"}</td>
+      <td class="border p-2 text-center"><button onclick="hapusData(${item.index})" class="text-red-600 hover:underline">Hapus</button></td>
+    `;
+    const tbody = document.getElementById(`bulan-${bulan}`);
+    if (tbody) tbody.appendChild(row);
+    totalPerBulan[bulan] += Number(item.nominal);
+  });
+
+  totalPerBulan.forEach((total, i) => {
+    const el = document.getElementById(`total-${i}`);
+    if (el) el.textContent = `Rp ${total.toLocaleString("id-ID")}`;
+  });
+}
+
+// ✅ Hapus
+function hapusData(index) {
+  data.splice(index, 1);
+  simpanKeDatabase();
+  tampilkanData();
+  hitungSisa();
+}
+
+// ✅ Ekspor ke Excel
+function eksporExcel() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb, ws, "Pengeluaran");
+  XLSX.writeFile(wb, "RumaFin_Pengeluaran.xlsx");
+}
