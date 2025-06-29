@@ -306,3 +306,30 @@ document.getElementById("penghasilan").addEventListener("change", e => {
   simpanKeDatabase();
   hitungSisa();
 });
+function exportToExcel() {
+  let rows = [["Tanggal", "Kategori", "Nominal", "Keterangan"]];
+
+  for (const tanggal in data) {
+    if (!Array.isArray(data[tanggal])) continue;
+    data[tanggal].forEach(item => {
+      rows.push([
+        item.tanggal,
+        item.kategori,
+        item.nominal,
+        item.keterangan || ""
+      ]);
+    });
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8," 
+    + rows.map(e => e.join(",")).join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "pengeluaran_rumafin.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
