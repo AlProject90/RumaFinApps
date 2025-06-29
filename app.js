@@ -50,10 +50,19 @@ function simpanSemua() {
     const keterangan = inputs[3].value.trim();
 
     if (tanggal && kategori && nominal) {
-      if (!data[tanggal]) data[tanggal] = [];
-      data[tanggal].push({ kategori, nominal, keterangan });
+      if (!data[tanggal]) {
+        data[tanggal] = [];
+      }
+      // Tambahkan field 'tanggal' ke dalam item
+      data[tanggal].push({ tanggal, kategori, nominal, keterangan });
     }
   });
+
+  simpanKeDatabase();
+  document.getElementById("inputRows").innerHTML = "";
+  tampilkanData();
+  hitungSisa();
+}
 
   simpanKeDatabase();
   document.getElementById("inputRows").innerHTML = "";
@@ -230,26 +239,41 @@ function hapusData(tanggal, index) {
 async function loadDataDariDatabase() {
   const user = auth.currentUser;
   if (!user) return;
+
   try {
     const snapshot = await database.ref("pengeluaran/" + user.uid).once("value");
     const val = snapshot.val();
+
     if (val) {
       penghasilan = val.penghasilan || 0;
       document.getElementById("penghasilan").value = penghasilan;
+
       data = {};
+
       Object.entries(val).forEach(([key, value]) => {
-        if (key !== "penghasilan" && Array.isArray(value)) {
-          data[key] = value;
+        if (key === "penghasilan") return;
+
+        if (Array.isArray(value)) {
+          // Pastikan setiap item memiliki properti 'tanggal'
+          const fixedItems = value.map(item => ({
+            ...item,
+            tanggal: item.tanggal || key
+          }));
+          data[key] = fixedItems;
         }
       });
+
     } else {
-      penghasilan = 0;
       data = {};
+      penghasilan = 0;
+      document.getElementById("penghasilan").value = 0;
     }
+
     tampilkanData();
     hitungSisa();
+
   } catch (err) {
-    console.error("❌ Gagal mengambil data:", err);
+    console.error("❌ Gagal mengambil data dari Firebase:", err);
   }
 }
 
