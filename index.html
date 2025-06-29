@@ -1,10 +1,22 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RumaFin - Landing Page</title>
+  <title>RumaFin - Catatan Keuangan Keluarga</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script>
+    // Toggle dark mode on click
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    // Load theme preference
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
   <style>
     body {
       background-image: url('https://images.unsplash.com/photo-1605902711622-cfb43c4437b2?auto=format&fit=crop&w=1350&q=80');
@@ -13,21 +25,80 @@
       background-repeat: no-repeat;
     }
     .bg-overlay {
-      background-color: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(4px);
+      background-color: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(6px);
+    }
+    .dark .bg-overlay {
+      background-color: rgba(30, 30, 30, 0.85);
+      color: white;
+    }
+    .fade-in {
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Preloader */
+    #preloader {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .spinner {
+      border: 4px solid #ccc;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6">
-  <div class="bg-overlay max-w-2xl w-full text-center p-10 rounded-lg shadow-xl">
-    <h1 class="text-4xl font-bold text-indigo-800 mb-2">RumaFin</h1>
-    <p class="text-lg text-gray-700 mb-6">Catatan Keuangan Rumah Tangga Digital</p>
-    
-    <img src="https://cdn-icons-png.flaticon.com/512/2920/2920218.png" alt="Money Icon" class="w-24 mx-auto mb-6">
-
-    <a href="app.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-300">🚀 Mulai Gunakan Aplikasi</a>
-    
-    <p class="text-sm text-gray-500 mt-6">Dikembangkan oleh Al Fiurrahman</p>
+<body class="min-h-screen flex items-center justify-center p-6 dark:bg-gray-900 transition-all duration-500">
+  <!-- 🔄 Preloader -->
+  <div id="preloader">
+    <div class="spinner"></div>
   </div>
+
+  <div class="bg-overlay max-w-2xl w-full text-center p-10 rounded-2xl shadow-2xl fade-in">
+    <div class="flex justify-between items-center mb-4">
+      <img src="https://cdn-icons-png.flaticon.com/512/263/263115.png" alt="RumaFin Logo" class="w-12 h-12" />
+      <button onclick="toggleDarkMode()" class="text-sm bg-indigo-500 hover:bg-indigo-700 text-white px-3 py-1 rounded transition">🌓 Ganti Tema</button>
+    </div>
+
+    <h1 class="text-4xl font-extrabold text-indigo-800 dark:text-indigo-300 mb-2 tracking-wide">RumaFin</h1>
+    <p class="text-lg text-gray-700 dark:text-gray-300 mb-6 font-medium">Mencatat & Mengelola Keuangan Rumah Tangga Jadi Mudah</p>
+    
+    <a href="app.html" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md transition transform hover:scale-105">
+      🚀 Mulai Gunakan Aplikasi
+    </a>
+    
+    <p class="text-sm text-gray-500 dark:text-gray-300 mt-6">🛠️ Dikembangkan oleh <span class="font-semibold text-indigo-700 dark:text-indigo-400">Al Fiurrahman</span></p>
+
+    <!-- 📧 Form Kontak / Newsletter -->
+    <div class="mt-10 text-left">
+      <h2 class="text-xl font-semibold mb-2 text-indigo-800 dark:text-indigo-300">📬 Ingin update terbaru?</h2>
+      <form onsubmit="alert('Terima kasih!'); return false;" class="flex flex-col sm:flex-row gap-2">
+        <input type="email" required placeholder="Alamat Email Anda" class="flex-1 p-2 rounded border border-gray-300 dark:bg-gray-800 dark:text-white" />
+        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">Kirim</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Hide preloader after load
+    window.addEventListener("load", () => {
+      document.getElementById("preloader").style.display = "none";
+    });
+  </script>
 </body>
 </html>
