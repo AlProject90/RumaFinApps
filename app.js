@@ -94,46 +94,20 @@ function tampilkanData() {
   container.innerHTML = "";
 
   const totalPerBulan = Array(12).fill(0);
-  const search = document.getElementById("searchInput").value.toLowerCase();
-  const tahunFilter = document.getElementById("filterTahun").value;
-  const startDateVal = document.getElementById("startDate").value;
-  const endDateVal = document.getElementById("endDate").value;
-
-  const startDate = startDateVal ? new Date(startDateVal) : null;
-  const endDate = endDateVal ? new Date(endDateVal) : null;
-
   const semuaTanggal = Object.keys(data || {}).filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key));
-  const dataFiltered = [];
 
+  const grupPerBulan = {};
   semuaTanggal.forEach(tglStr => {
     const items = data[tglStr];
     if (!Array.isArray(items)) return;
-
     const tgl = new Date(tglStr);
     const bulan = tgl.getMonth();
-    const tahun = tgl.getFullYear();
 
-    if (tahunFilter && tahun != parseInt(tahunFilter)) return;
-    if (startDate && tgl < startDate) return;
-    if (endDate && tgl > endDate) return;
-
-    items.forEach((item, i) => {
-      const cocokCari = !search || (
-        item.kategori?.toLowerCase().includes(search) ||
-        item.keterangan?.toLowerCase().includes(search)
-      );
-      if (cocokCari) {
-        dataFiltered.push({ ...item, tanggal: tglStr, index: `${tglStr}_${i}` });
-      }
+    items.forEach(item => {
+      if (!grupPerBulan[bulan]) grupPerBulan[bulan] = [];
+      grupPerBulan[bulan].push(item);
+      totalPerBulan[bulan] += Number(item.nominal);
     });
-  });
-
-  const grupPerBulan = {};
-  dataFiltered.forEach(item => {
-    const bulan = new Date(item.tanggal).getMonth();
-    if (!grupPerBulan[bulan]) grupPerBulan[bulan] = [];
-    grupPerBulan[bulan].push(item);
-    totalPerBulan[bulan] += Number(item.nominal);
   });
 
   for (let i = 0; i < 12; i++) {
