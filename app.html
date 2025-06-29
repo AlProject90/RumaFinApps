@@ -4,15 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RumaFinApps</title>
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <!-- Export Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <script defer src="app.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Tailwind -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 </head>
 <body class="bg-gray-100 font-sans">
   <div class="container mx-auto px-4 py-4">
+    <!-- Header -->
     <div class="flex justify-between items-center mb-4">
       <h1 class="text-2xl font-bold text-indigo-700 flex items-center">
         <img src="https://cdn-icons-png.flaticon.com/512/25/25694.png" alt="Logo" class="w-6 h-6 mr-2" /> RumaFinApps
@@ -24,6 +27,7 @@
       </div>
     </div>
 
+    <!-- Filter -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-4">
       <input id="penghasilan" type="number" placeholder="Penghasilan" class="border p-2 rounded col-span-1" />
       <input id="searchInput" type="text" placeholder="Cari kategori/keterangan" class="border p-2 rounded col-span-1" />
@@ -52,13 +56,14 @@
       <button onclick="resetFilter()" class="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded">🔁 Reset Filter</button>
     </div>
 
-    <!-- Total Penghasilan | Pengeluaran | Sisa -->
+    <!-- Total -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-center">
       <div class="border p-2 rounded bg-white font-semibold">Total Penghasilan <div id="totalPenghasilan">Rp 0</div></div>
       <div class="border p-2 rounded bg-white font-semibold">Total Pengeluaran <div id="totalPengeluaran">Rp 0</div></div>
       <div class="border p-2 rounded bg-white font-semibold">Sisa Uang <div id="sisaUang">Rp 0</div></div>
     </div>
 
+    <!-- Tombol -->
     <div class="flex flex-wrap gap-2 items-center mb-4">
       <button onclick="tambahBaris()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">+ Tambah Baris</button>
       <button onclick="simpanSemua()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">💾 Simpan Semua</button>
@@ -66,6 +71,7 @@
       <button onclick="resetData()" class="bg-red-300 hover:bg-red-400 text-black px-4 py-2 rounded">Reset Data</button>
     </div>
 
+    <!-- Tabel Input -->
     <table class="min-w-full text-sm text-gray-700 border mb-4">
       <thead>
         <tr class="bg-gray-100">
@@ -79,7 +85,11 @@
       <tbody id="inputRows"></tbody>
     </table>
 
+    <!-- Output per Bulan -->
     <div id="bulanContainer"></div>
   </div>
+
+  <!-- Script Terakhir -->
+  <script defer src="app.js"></script>
 </body>
 </html>
