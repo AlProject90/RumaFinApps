@@ -8,7 +8,6 @@ const firebaseConfig = {
   messagingSenderId: "456685667439",
   appId: "1:456685667439:web:f1254845968302a084f99a"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
@@ -60,7 +59,6 @@ function simpanSemua() {
   simpanKeDatabase();
   document.getElementById("inputRows").innerHTML = "";
   tampilkanData();
-  hitungSisa();
 }
 
 // 🔄 Simpan ke Firebase
@@ -75,7 +73,7 @@ function simpanKeDatabase() {
   }
 }
 
-// 💰 Hitung Sisa Uang
+// 💰 Hitung dan Tampilkan Pengeluaran & Sisa Uang
 function hitungSisa() {
   let total = 0;
   for (const tanggal in data) {
@@ -84,8 +82,10 @@ function hitungSisa() {
     }
   }
   const sisa = penghasilan - total;
-  document.getElementById("totalPengeluaran").value = `Rp ${total.toLocaleString("id-ID")}`;
-  document.getElementById("sisaUang").value = `Rp ${sisa.toLocaleString("id-ID")}`;
+  if (document.getElementById("totalPengeluaranDisplay")) {
+    document.getElementById("totalPengeluaranDisplay").innerText = `Rp ${total.toLocaleString("id-ID")}`;
+    document.getElementById("sisaUangDisplay").innerText = `Rp ${sisa.toLocaleString("id-ID")}`;
+  }
 }
 
 // 🔁 Reset Filter
@@ -97,7 +97,7 @@ function resetFilter() {
   tampilkanData();
 }
 
-// 🧠 Tampilkan Data
+// 🧠 Tampilkan Data Per Bulan
 function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
@@ -193,7 +193,7 @@ function tampilkanData() {
   hitungSisa();
 }
 
-// ✏️ Edit Data
+// ✏️ Edit & Simpan Edit
 function editData(tanggal, index) {
   const item = data[tanggal][index];
   const row = document.createElement("tr");
@@ -210,8 +210,6 @@ function editData(tanggal, index) {
   const rows = Array.from(tbody.children);
   tbody.replaceChild(row, rows[index]);
 }
-
-// 💾 Simpan Edit
 function simpanEdit(tanggal, index, button) {
   const row = button.closest("tr");
   const inputs = row.querySelectorAll("input");
@@ -239,7 +237,7 @@ function hapusData(tanggal, index) {
   }
 }
 
-// 🔁 Ambil Data dari Firebase
+// 🔁 Load Data dari Firebase
 async function loadDataDariDatabase() {
   const user = auth.currentUser;
   if (!user) return;
@@ -256,8 +254,7 @@ async function loadDataDariDatabase() {
       Object.entries(val).forEach(([key, value]) => {
         if (key === "penghasilan") return;
         if (Array.isArray(value)) {
-          const fixedItems = value.map(item => ({ ...item, tanggal: item.tanggal || key }));
-          data[key] = fixedItems;
+          data[key] = value.map(item => ({ ...item, tanggal: item.tanggal || key }));
         }
       });
     } else {
@@ -267,17 +264,17 @@ async function loadDataDariDatabase() {
     }
 
     tampilkanData();
-    hitungSisa();
   } catch (err) {
-    console.error("❌ Gagal mengambil data:", err);
+    console.error("❌ Gagal ambil data:", err);
   }
 }
 
-// 🧠 Auth State
+// 🔄 Auth Listener
 auth.onAuthStateChanged(async user => {
   const loginBtn = document.getElementById("btnLogin");
   const logoutBtn = document.getElementById("btnLogout");
   const userName = document.getElementById("userName");
+
   if (user) {
     loginBtn.classList.add("hidden");
     logoutBtn.classList.remove("hidden");
@@ -291,11 +288,10 @@ auth.onAuthStateChanged(async user => {
     penghasilan = 0;
     document.getElementById("penghasilan").value = 0;
     tampilkanData();
-    hitungSisa();
   }
 });
 
-// 💵 Ubah Penghasilan
+// 💵 Simpan Penghasilan Otomatis
 const penghasilanInput = document.getElementById("penghasilan");
 if (penghasilanInput) {
   penghasilanInput.addEventListener("change", e => {

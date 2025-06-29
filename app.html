@@ -13,6 +13,7 @@
 </head>
 <body class="bg-gray-100 font-sans">
   <div class="container mx-auto px-4 py-4">
+    <!-- Header -->
     <div class="flex justify-between items-center mb-4">
       <h1 class="text-2xl font-bold text-indigo-700 flex items-center">
         <img src="icon.png" alt="Logo" class="w-6 h-6 mr-2" /> RumaFinApps
@@ -24,6 +25,7 @@
       </div>
     </div>
 
+    <!-- Filter Form -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
       <input id="penghasilan" type="number" placeholder="Penghasilan" class="border p-2 rounded" />
       <input id="searchInput" type="text" placeholder="Cari kategori/keterangan" class="border p-2 rounded" />
@@ -37,6 +39,19 @@
       <button onclick="resetFilter()" class="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded">Reset Filter</button>
     </div>
 
+    <!-- Informasi Pengeluaran dan Sisa -->
+    <div class="flex flex-wrap gap-4 items-center mb-4 bg-white p-4 rounded-lg shadow">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Total Pengeluaran</label>
+        <p id="totalPengeluaranDisplay" class="text-lg font-semibold text-red-600">Rp 0</p>
+      </div>
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Sisa Uang</label>
+        <p id="sisaUangDisplay" class="text-lg font-semibold text-green-600">Rp 0</p>
+      </div>
+    </div>
+
+    <!-- Tabel Input Data -->
     <table class="min-w-full text-sm text-gray-700 border mb-4">
       <thead>
         <tr class="bg-gray-100">
@@ -50,15 +65,15 @@
       <tbody id="inputRows"></tbody>
     </table>
 
+    <!-- Tombol dan Input -->
     <div class="flex flex-wrap gap-2 items-center mb-4">
       <button onclick="tambahBaris()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">+ Tambah Baris</button>
       <button onclick="simpanSemua()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">💾 Simpan Semua</button>
-      <input id="totalPengeluaran" class="border p-2 rounded w-48" readonly />
-      <input id="sisaUang" class="border p-2 rounded w-48" readonly />
       <button onclick="exportToExcel()" class="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded">⬇️ Export Excel</button>
       <button onclick="resetData()" class="bg-red-300 hover:bg-red-400 text-black px-4 py-2 rounded">Reset Data</button>
     </div>
 
+    <!-- Data per Bulan -->
     <div id="bulanContainer"></div>
   </div>
 </body>
