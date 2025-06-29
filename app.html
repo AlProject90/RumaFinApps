@@ -1,84 +1,80 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RumaFin - Pengeluaran Rumah Tangga</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-  <div class="max-w-6xl mx-auto">
-    <h1 class="text-4xl font-extrabold text-center text-indigo-800 mb-2 tracking-tight">
-      RumaFin <span class="text-gray-600 text-xl">(Rumah Finance)</span>
-    </h1>
-    <div class="text-center my-4">
-      <button id="btnLogin" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">🔐 Login Google</button>
-      <button id="btnLogout" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 hidden">Logout</button>
-      <p id="userName" class="mt-2 text-green-700 font-semibold"></p>
-    </div>
-    <!-- Form Penghasilan -->
-    <div class="bg-white p-4 rounded shadow-md mb-6">
-      <h2 class="text-xl font-semibold text-green-700 mb-2">💰 Pemasukan</h2>
-      <div class="flex flex-wrap gap-4 items-end">
-        <div class="flex flex-col">
-          <label>Total Penghasilan</label>
-          <input type="number" id="penghasilan" class="border p-2 rounded w-60" placeholder="cth: 5000000">
-          <button id="btnEditPenghasilan" class="mt-2 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">💾 Simpan</button>
-        </div>
-        <div class="flex flex-col">
-          <label>Total Pengeluaran</label>
-          <input type="text" id="totalPengeluaran" class="border p-2 rounded w-60 bg-gray-100" readonly>
-        </div>
-        <div class="flex flex-col">
-          <label>Sisa Uang</label>
-          <input type="text" id="sisaUang" class="border p-2 rounded w-60 bg-yellow-100 text-lg font-bold" readonly>
-        </div>
+<body class="bg-gray-100 min-h-screen p-4">
+
+  <div class="max-w-5xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold text-indigo-700">📊 RumaFin</h1>
+      <div class="flex items-center space-x-4">
+        <span id="userName" class="text-gray-700"></span>
+        <button id="btnLogin" onclick="login()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">Login</button>
+        <button id="btnLogout" onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded hidden">Logout</button>
       </div>
     </div>
-    <!-- Filter Data -->
-    <div class="bg-white p-4 rounded shadow-md mb-6">
-      <h2 class="text-lg font-semibold text-indigo-700 mb-4">🔍 Filter Data</h2>
-      <!-- Keyword -->
-      <div class="mb-4">
-        <label>Cari Data</label>
-        <input type="text" id="searchInput" class="w-full p-2 border rounded" placeholder="Masukkan kata kunci">
-      </div>
-      <!-- Tanggal Range -->
-      <div class="flex flex-wrap gap-4 items-end mb-4">
-        <div><label>Tanggal Awal</label><input type="date" id="startDate" class="p-2 border rounded"></div>
-        <div><label>Tanggal Akhir</label><input type="date" id="endDate" class="p-2 border rounded"></div>
-        <button id="btnCari" class="bg-indigo-600 text-white px-4 py-2 rounded">🔍 Cari</button>
-      </div>
-      <!-- Tahun -->
-      <div class="flex flex-wrap gap-4 items-end">
-        <div><label>Tahun</label><input type="number" id="filterTahun" placeholder="cth: 2025" class="p-2 border rounded w-40"></div>
-        <button id="btnResetFilter" class="bg-gray-500 text-white px-4 py-2 rounded">🔄 Reset</button>
-      </div>
+
+    <!-- Penghasilan -->
+    <div class="mb-4">
+      <label class="block mb-1 font-medium">Penghasilan:</label>
+      <input id="penghasilan" type="number" class="w-full border p-2 rounded" placeholder="Masukkan penghasilan per bulan" oninput="penghasilan = Number(this.value); simpanKeDatabase(); hitungSisa();" />
     </div>
-    <!-- Aksi Data -->
-    <div class="flex flex-wrap gap-2 mb-4">
-      <button id="btnTambah" class="bg-gray-700 text-white px-4 py-2 rounded">+ Input</button>
-      <button id="btnSimpan" class="bg-blue-600 text-white px-4 py-2 rounded">Simpan Semua</button>
-      <button id="btnExport" class="bg-green-600 text-white px-4 py-2 rounded">📄 Ekspor Excel</button>
-      <button id="btnReset" class="bg-red-600 text-white px-4 py-2 rounded">🔄 Reset Data</button>
-    </div>
-    <!-- Tabel Input & Output -->
-    <div class="overflow-x-auto bg-white p-4 rounded shadow-md mb-6">
-      <table class="min-w-full text-sm text-gray-700" id="inputTable">
-        <thead><tr class="bg-blue-100"><th>Tanggal</th><th>Kategori</th><th>Nominal</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+
+    <!-- Input Baris Baru -->
+    <div class="bg-white p-4 rounded shadow mb-4">
+      <h2 class="text-lg font-semibold mb-2">➕ Tambah Pengeluaran</h2>
+      <table class="min-w-full text-sm border mb-2">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="border p-2">Tanggal</th>
+            <th class="border p-2">Kategori</th>
+            <th class="border p-2">Nominal</th>
+            <th class="border p-2">Keterangan</th>
+            <th class="border p-2">Aksi</th>
+          </tr>
+        </thead>
         <tbody id="inputRows"></tbody>
       </table>
+      <button onclick="tambahBaris()" class="bg-blue-500 text-white px-3 py-1 rounded mr-2">+ Input</button>
+      <button onclick="simpanSemua()" class="bg-green-600 text-white px-3 py-1 rounded mr-2">💾 Simpan Semua</button>
+      <button onclick="location.reload()" class="bg-gray-500 text-white px-3 py-1 rounded mr-2">🔄 Reset Data</button>
+      <button onclick="exportToExcel()" class="bg-yellow-500 text-white px-3 py-1 rounded">📤 Export Excel</button>
     </div>
-    <div class="space-y-6" id="bulanContainer"></div>
+
+    <!-- Filter -->
+    <div class="bg-white p-4 rounded shadow mb-4">
+      <h2 class="text-lg font-semibold mb-2">🔍 Filter Data</h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input id="searchInput" type="text" placeholder="Cari Kategori atau Keterangan" class="border p-2 rounded col-span-2" oninput="tampilkanData()"/>
+        <input id="startDate" type="date" class="border p-2 rounded" onchange="tampilkanData()" />
+        <input id="endDate" type="date" class="border p-2 rounded" onchange="tampilkanData()" />
+        <input id="filterTahun" type="number" placeholder="Filter Tahun (misal: 2025)" class="border p-2 rounded" oninput="tampilkanData()"/>
+      </div>
+    </div>
+
+    <!-- Data Per Bulan -->
+    <div id="bulanContainer" class="space-y-4"></div>
+
+    <!-- Total & Sisa -->
+    <div class="bg-white p-4 rounded shadow mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block mb-1 font-medium">Total Pengeluaran:</label>
+        <input id="totalPengeluaran" type="text" readonly class="w-full border p-2 rounded bg-gray-100" />
+      </div>
+      <div>
+        <label class="block mb-1 font-medium">Sisa Uang:</label>
+        <input id="sisaUang" type="text" readonly class="w-full border p-2 rounded bg-gray-100" />
+      </div>
+    </div>
   </div>
-  <!-- Script Bulan dan App -->
-  <script>
-    function isiBulanSelect(id){ const s=document.getElementById(id); s.innerHTML=''; s.append(new Option('Semua Bulan','')); for(let i=0;i<12;i++){ s.append(new Option(new Date(0,i).toLocaleString('id',{month:'long'}),i));}}
-  </script>
-  <script src="app.js?v=final"></script>
+
+  <script src="app.js"></script>
 </body>
 </html>
