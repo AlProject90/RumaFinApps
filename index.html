@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RumaFin - Landing Page</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2920/2920218.png" />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
@@ -12,22 +13,23 @@
       background-position: center;
       background-repeat: no-repeat;
     }
-
     .bg-overlay {
-      background-color: rgba(255, 255, 255, 0.85);
+      background-color: rgba(255,255,255,0.85);
       backdrop-filter: blur(5px);
+      animation: fade-in 1s ease-in-out forwards;
+      opacity: 0;
     }
+    @keyframes fade-in { to { opacity: 1; } }
   </style>
+  <meta name="description" content="Aplikasi pengelola keuangan rumah tangga digital, mudah digunakan dan gratis.">
+  <meta name="author" content="Al Fiurrahman">
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
   <div class="bg-overlay max-w-2xl w-full text-center p-10 rounded-lg shadow-2xl">
     <h1 class="text-4xl font-bold text-indigo-800 mb-2">RumaFin</h1>
     <p class="text-lg text-gray-700 mb-6">Catatan / Kas Pengeluaran Rumah Tangga Digital</p>
-    
     <img src="https://cdn-icons-png.flaticon.com/512/2920/2920218.png" alt="Money Icon" class="w-24 mx-auto mb-6">
-
-    <a href="app.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-300">🚀 Mulai Gunakan Aplikasi</a>
-    
+    <a href="app.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition duration-300">🚀 Mulai Aplikasi</a>
     <p class="text-sm text-gray-500 mt-6">Dikembangkan oleh Al Fiurrahman</p>
   </div>
 </body>
