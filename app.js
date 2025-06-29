@@ -53,16 +53,9 @@ function simpanSemua() {
       if (!data[tanggal]) {
         data[tanggal] = [];
       }
-      // Tambahkan field 'tanggal' ke dalam item
       data[tanggal].push({ tanggal, kategori, nominal, keterangan });
     }
   });
-
-  simpanKeDatabase();
-  document.getElementById("inputRows").innerHTML = "";
-  tampilkanData();
-  hitungSisa();
-}
 
   simpanKeDatabase();
   document.getElementById("inputRows").innerHTML = "";
@@ -254,7 +247,6 @@ async function loadDataDariDatabase() {
         if (key === "penghasilan") return;
 
         if (Array.isArray(value)) {
-          // Pastikan setiap item memiliki properti 'tanggal'
           const fixedItems = value.map(item => ({
             ...item,
             tanggal: item.tanggal || key
@@ -275,6 +267,15 @@ async function loadDataDariDatabase() {
   } catch (err) {
     console.error("❌ Gagal mengambil data dari Firebase:", err);
   }
+}
+
+// 🔁 Reset Filter
+function resetFilter() {
+  document.getElementById("searchInput").value = "";
+  document.getElementById("filterTahun").value = "";
+  document.getElementById("startDate").value = "";
+  document.getElementById("endDate").value = "";
+  tampilkanData();
 }
 
 // 🧠 Auth State
