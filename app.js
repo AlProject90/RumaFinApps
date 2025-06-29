@@ -85,7 +85,6 @@ function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
 
-  const totalPerBulan = Array(12).fill(0);
   const search = document.getElementById("searchInput").value.toLowerCase();
   const bulanAwal = parseInt(document.getElementById("filterBulan").value);
   const bulanAkhir = parseInt(document.getElementById("filterBulanAkhir").value);
@@ -93,6 +92,9 @@ function tampilkanData() {
   const startDate = document.getElementById("startDate").value ? new Date(document.getElementById("startDate").value) : null;
   const endDate = document.getElementById("endDate").value ? new Date(document.getElementById("endDate").value) : null;
 
+  const totalPerBulan = Array(12).fill(0);
+
+  // Filter data
   const dataFiltered = data.map((item, index) => ({ ...item, index })).filter(item => {
     const tgl = new Date(item.tanggal);
     const bulan = tgl.getMonth();
@@ -108,9 +110,11 @@ function tampilkanData() {
     return true;
   });
 
-  const bulanUnik = [...new Set(dataFiltered.map(item => new Date(item.tanggal).getMonth()))];
+  // Tentukan bulan yang ingin ditampilkan (rentang penuh dari pencarian)
+  const bulanMulai = !isNaN(bulanAwal) ? bulanAwal : 0;
+  const bulanSelesai = !isNaN(bulanAkhir) ? bulanAkhir : 11;
 
-  bulanUnik.forEach(i => {
+  for (let i = bulanMulai; i <= bulanSelesai; i++) {
     const card = document.createElement("div");
     card.className = "bg-white p-4 rounded shadow-md mb-4";
     card.innerHTML = `
@@ -136,33 +140,36 @@ function tampilkanData() {
       </table>
     `;
     container.appendChild(card);
-  });
+  }
 
+  // Tampilkan data di tiap bulan
   dataFiltered.forEach(item => {
     const bulan = new Date(item.tanggal).getMonth();
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td class="border p-1"><input type="date" class="w-full border p-1" value="${item.tanggal}" /></td>
-      <td class="border p-1"><input type="text" class="w-full border p-1" value="${item.kategori}" /></td>
-      <td class="border p-1"><input type="number" class="w-full border p-1" value="${item.nominal}" /></td>
-      <td class="border p-1"><input type="text" class="w-full border p-1" value="${item.keterangan || ''}" /></td>
-      <td class="border p-1 text-center">
-        <button onclick="simpanEdit(${item.index}, this)" class="text-blue-600 hover:underline">💾 Simpan</button>
-        <button onclick="hapusData(${item.index})" class="text-red-600 hover:underline ml-2">🗑️ Hapus</button>
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="border p-1">${item.tanggal}</td>
+      <td class="border p-1">${item.kategori}</td>
+      <td class="border p-1">Rp ${Number(item.nominal).toLocaleString("id-ID")}</td>
+      <td class="border p-1">${item.keterangan || '-'}</td>
+      <td class="border p-1 text-center space-x-2">
+        <button onclick="editData(${item.index})" class="text-yellow-600 hover:underline">Edit</button>
+        <button onclick="hapusData(${item.index})" class="text-red-600 hover:underline">Hapus</button>
       </td>
     `;
-    document.getElementById(`bulan-${bulan}`).appendChild(row);
+    const tbody = document.getElementById(`bulan-${bulan}`);
+    if (tbody) {
+      tbody.appendChild(tr);
+      totalPerBulan[bulan] += Number(item.nominal);
+    }
   });
 
-  // Hitung total per bulan
-  dataFiltered.forEach(item => {
-    const bulan = new Date(item.tanggal).getMonth();
-    totalPerBulan[bulan] += Number(item.nominal);
-  });
+  // Tampilkan total per bulan
   totalPerBulan.forEach((total, i) => {
-    const el = document.getElementById(`total-${i}`);
-    if (el) el.textContent = `Rp ${total.toLocaleString("id-ID")}`;
+    const td = document.getElementById(`total-${i}`);
+    if (td) td.textContent = `Rp ${total.toLocaleString("id-ID")}`;
   });
+
+  hitungSisa();
 }
 
 function simpanEdit(index, btn) {
