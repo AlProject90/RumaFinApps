@@ -8,25 +8,26 @@ const firebaseConfig = {
   messagingSenderId: "456685667439",
   appId: "1:456685667439:web:f1254845968302a084f99a"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
-const NAMA_BULAN = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
+const NAMA_BULAN = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
 let data = {};
 let penghasilan = 0;
 
 // 🔐 Login & Logout
-function login() {
+window.login = function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(err => alert("Login gagal: " + err.message));
+  auth.signInWithPopup(provider).catch(error => alert("Login gagal: " + error.message));
 }
-function logout() {
+window.logout = function logout() {
   auth.signOut();
 }
 
-// ➕ Tambah Baris
-function tambahBaris() {
+// ➕ Tambah Baris Input
+window.tambahBaris = function tambahBaris() {
   const row = document.createElement("tr");
   row.innerHTML = `
     <td><input type="date" class="w-full border p-1"></td>
@@ -38,8 +39,8 @@ function tambahBaris() {
   document.getElementById("inputRows").appendChild(row);
 }
 
-// 💾 Simpan Semua
-function simpanSemua() {
+// 💾 Simpan Input ke Firebase
+window.simpanSemua = function simpanSemua() {
   const rows = document.querySelectorAll("#inputRows tr");
   rows.forEach(row => {
     const inputs = row.querySelectorAll("input");
@@ -49,7 +50,9 @@ function simpanSemua() {
     const keterangan = inputs[3].value.trim();
 
     if (tanggal && kategori && nominal) {
-      if (!data[tanggal]) data[tanggal] = [];
+      if (!data[tanggal]) {
+        data[tanggal] = [];
+      }
       data[tanggal].push({ tanggal, kategori, nominal, keterangan });
     }
   });
@@ -64,12 +67,29 @@ function simpanSemua() {
 function simpanKeDatabase() {
   const user = auth.currentUser;
   if (user) {
-    database.ref("pengeluaran/" + user.uid).set({ penghasilan, ...data });
+    database.ref("pengeluaran/" + user.uid).set({
+      penghasilan,
+      ...data
+    }).then(() => console.log("✅ Data disimpan"))
+      .catch(err => console.error("❌ Gagal simpan:", err));
   }
 }
 
+// 💰 Hitung Sisa Uang
+function hitungSisa() {
+  let total = 0;
+  for (const tanggal in data) {
+    for (const item of data[tanggal]) {
+      total += Number(item.nominal);
+    }
+  }
+  const sisa = penghasilan - total;
+  document.getElementById("totalPengeluaran").textContent = `Rp ${total.toLocaleString("id-ID")}`;
+  document.getElementById("sisaUang").textContent = `Rp ${sisa.toLocaleString("id-ID")}`;
+}
+
 // 🔁 Reset Filter
-function resetFilter() {
+window.resetFilter = function resetFilter() {
   document.getElementById("searchInput").value = "";
   document.getElementById("filterTahun").value = "";
   document.getElementById("startDate").value = "";
@@ -78,57 +98,18 @@ function resetFilter() {
   tampilkanData();
 }
 
-// 🔁 Reset Semua Data
-function resetData() {
-  if (confirm("Yakin ingin hapus semua data?")) {
-    const user = auth.currentUser;
-    if (user) {
-      database.ref("pengeluaran/" + user.uid).remove().then(() => {
-        data = {};
-        penghasilan = 0;
-        document.getElementById("penghasilan").value = 0;
-        tampilkanData();
-        hitungSisa();
-      });
-    }
-  }
-}
-
-// ⬇️ Export ke Excel
-function exportToExcel() {
-  const rows = [["Tanggal", "Kategori", "Nominal", "Keterangan"]];
-  Object.values(data).flat().forEach(item => {
-    rows.push([item.tanggal, item.kategori, item.nominal, item.keterangan]);
-  });
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb, ws, "Pengeluaran");
-  XLSX.writeFile(wb, "pengeluaran_rumafin.xlsx");
-}
-
-// 💰 Hitung Sisa
-function hitungSisa() {
-  let total = 0;
-  for (const tanggal in data) {
-    data[tanggal].forEach(item => {
-      total += Number(item.nominal);
-    });
-  }
-  const sisa = penghasilan - total;
-  document.getElementById("totalPengeluaran").textContent = `Rp ${total.toLocaleString("id-ID")}`;
-  document.getElementById("sisaUang").textContent = `Rp ${sisa.toLocaleString("id-ID")}`;
-}
-
-// 📊 Tampilkan Data
-function tampilkanData() {
+// 🧠 Tampilkan Data
+window.tampilkanData = function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
-
+  const totalPerBulan = Array(12).fill(0);
   const search = document.getElementById("searchInput").value.toLowerCase();
   const tahunFilter = document.getElementById("filterTahun").value;
   const bulanFilter = document.getElementById("filterBulan").value;
-  const start = document.getElementById("startDate").value;
-  const end = document.getElementById("endDate").value;
+  const startDateVal = document.getElementById("startDate").value;
+  const endDateVal = document.getElementById("endDate").value;
+  const startDate = startDateVal ? new Date(startDateVal) : null;
+  const endDate = endDateVal ? new Date(endDateVal) : null;
 
   const semuaTanggal = Object.keys(data || {}).filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key));
   const dataFiltered = [];
@@ -141,20 +122,23 @@ function tampilkanData() {
     const bulan = tgl.getMonth();
     const tahun = tgl.getFullYear();
 
-    if (tahunFilter && tahun != tahunFilter) return;
-    if (bulanFilter !== "" && bulan != bulanFilter) return;
-    if (start && tgl < new Date(start)) return;
-    if (end && tgl > new Date(end)) return;
+    if (tahunFilter && tahun != parseInt(tahunFilter)) return;
+    if (bulanFilter && bulan !== parseInt(bulanFilter)) return;
+    if (startDate && tgl < startDate) return;
+    if (endDate && tgl > endDate) return;
 
     items.forEach((item, i) => {
-      const cocok = !search || item.kategori?.toLowerCase().includes(search) || item.keterangan?.toLowerCase().includes(search);
-      if (cocok) dataFiltered.push({ ...item, tanggal: tglStr, index: `${tglStr}_${i}` });
+      const cocokCari = !search || (
+        item.kategori?.toLowerCase().includes(search) ||
+        item.keterangan?.toLowerCase().includes(search)
+      );
+      if (cocokCari) {
+        dataFiltered.push({ ...item, tanggal: tglStr, index: `${tglStr}_${i}` });
+      }
     });
   });
 
   const grupPerBulan = {};
-  const totalPerBulan = Array(12).fill(0);
-
   dataFiltered.forEach(item => {
     const bulan = new Date(item.tanggal).getMonth();
     if (!grupPerBulan[bulan]) grupPerBulan[bulan] = [];
@@ -210,8 +194,7 @@ function tampilkanData() {
   hitungSisa();
 }
 
-// ✏️ Edit & Simpan
-function editData(tanggal, index) {
+window.editData = function editData(tanggal, index) {
   const item = data[tanggal][index];
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -227,8 +210,9 @@ function editData(tanggal, index) {
   const rows = Array.from(tbody.children);
   tbody.replaceChild(row, rows[index]);
 }
-function simpanEdit(tanggal, index, btn) {
-  const row = btn.closest("tr");
+
+window.simpanEdit = function simpanEdit(tanggal, index, button) {
+  const row = button.closest("tr");
   const inputs = row.querySelectorAll("input");
   const newTanggal = inputs[0].value;
   const kategori = inputs[1].value;
@@ -238,12 +222,13 @@ function simpanEdit(tanggal, index, btn) {
   data[tanggal].splice(index, 1);
   if (data[tanggal].length === 0) delete data[tanggal];
   if (!data[newTanggal]) data[newTanggal] = [];
-  data[newTanggal].push({ tanggal: newTanggal, kategori, nominal, keterangan });
+  data[newTanggal].push({ kategori, nominal, keterangan, tanggal: newTanggal });
 
   simpanKeDatabase();
   tampilkanData();
 }
-function hapusData(tanggal, index) {
+
+window.hapusData = function hapusData(tanggal, index) {
   if (confirm("Yakin ingin menghapus data ini?")) {
     data[tanggal].splice(index, 1);
     if (data[tanggal].length === 0) delete data[tanggal];
@@ -252,7 +237,6 @@ function hapusData(tanggal, index) {
   }
 }
 
-// 🚀 Load Data
 async function loadDataDariDatabase() {
   const user = auth.currentUser;
   if (!user) return;
@@ -260,31 +244,45 @@ async function loadDataDariDatabase() {
   try {
     const snapshot = await database.ref("pengeluaran/" + user.uid).once("value");
     const val = snapshot.val();
+
     if (val) {
       penghasilan = val.penghasilan || 0;
       document.getElementById("penghasilan").value = penghasilan;
       data = {};
+
       Object.entries(val).forEach(([key, value]) => {
         if (key === "penghasilan") return;
         if (Array.isArray(value)) {
-          data[key] = value.map(item => ({ ...item, tanggal: item.tanggal || key }));
+          const fixedItems = value.map(item => ({ ...item, tanggal: item.tanggal || key }));
+          data[key] = fixedItems;
         }
       });
+    } else {
+      data = {};
+      penghasilan = 0;
+      document.getElementById("penghasilan").value = 0;
     }
+
     tampilkanData();
     hitungSisa();
   } catch (err) {
-    console.error("❌ Gagal ambil data:", err);
+    console.error("❌ Gagal mengambil data:", err);
   }
 }
 
-// 🔁 Cek Login
 auth.onAuthStateChanged(async user => {
-  document.getElementById("btnLogin").classList.toggle("hidden", !!user);
-  document.getElementById("btnLogout").classList.toggle("hidden", !user);
-  document.getElementById("userName").textContent = user ? `👋 Halo, ${user.displayName}` : "";
-  if (user) await loadDataDariDatabase();
-  else {
+  const loginBtn = document.getElementById("btnLogin");
+  const logoutBtn = document.getElementById("btnLogout");
+  const userName = document.getElementById("userName");
+  if (user) {
+    loginBtn.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
+    userName.textContent = `👋 Halo, ${user.displayName}`;
+    await loadDataDariDatabase();
+  } else {
+    loginBtn.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
+    userName.textContent = "";
     data = {};
     penghasilan = 0;
     document.getElementById("penghasilan").value = 0;
@@ -293,22 +291,14 @@ auth.onAuthStateChanged(async user => {
   }
 });
 
-// 💵 Ubah Penghasilan
-document.getElementById("penghasilan").addEventListener("change", e => {
-  penghasilan = Number(e.target.value);
-  simpanKeDatabase();
-  hitungSisa();
-});
-
-// 🌍 Fungsi Global agar bisa diakses dari HTML
-window.login = login;
-window.logout = logout;
-window.tambahBaris = tambahBaris;
-window.simpanSemua = simpanSemua;
-window.exportToExcel = exportToExcel;
-window.resetFilter = resetFilter;
-window.resetData = resetData;
-window.tampilkanData = tampilkanData;
-window.editData = editData;
-window.simpanEdit = simpanEdit;
-window.hapusData = hapusData;
+if (!window._penghasilanListenerSet) {
+  const penghasilanInput = document.getElementById("penghasilan");
+  if (penghasilanInput) {
+    penghasilanInput.addEventListener("change", e => {
+      penghasilan = Number(e.target.value);
+      simpanKeDatabase();
+      hitungSisa();
+    });
+  }
+  window._penghasilanListenerSet = true;
+}
