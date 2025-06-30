@@ -1,4 +1,3 @@
-// ✅ Konfigurasi Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCtXSM2NOuH4ruhasx7O7rzxTxxKfYdTts",
   authDomain: "rumafinapps.firebaseapp.com",
@@ -21,7 +20,6 @@ const NAMA_BULAN = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
 
-// 🔐 Login & Logout
 window.login = () => {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(err => alert("Login gagal: " + err.message));
@@ -29,7 +27,6 @@ window.login = () => {
 
 window.logout = () => auth.signOut();
 
-// ➕ Tambah Baris Input
 window.tambahBaris = () => {
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -42,7 +39,6 @@ window.tambahBaris = () => {
   document.getElementById("inputRows").appendChild(row);
 };
 
-// 💾 Simpan Semua Pengeluaran
 window.simpanSemua = () => {
   const rows = document.querySelectorAll("#inputRows tr");
   rows.forEach(row => {
@@ -62,7 +58,6 @@ window.simpanSemua = () => {
   hitungRingkasan();
 };
 
-// 💾 Simpan Penghasilan Per Bulan
 window.simpanPenghasilanPerBulan = () => {
   const bulan = document.getElementById("inputPenghasilanBulan").value;
   const tahun = document.getElementById("inputPenghasilanTahun").value;
@@ -79,7 +74,6 @@ window.simpanPenghasilanPerBulan = () => {
   hitungRingkasan();
 };
 
-// 🔄 Simpan ke Firebase
 function simpanKeDatabase() {
   const user = auth.currentUser;
   if (user) {
@@ -90,7 +84,6 @@ function simpanKeDatabase() {
   }
 }
 
-// 🔁 Reset Filter
 window.resetFilter = () => {
   ["searchInput", "filterTahun", "startDate", "endDate", "filterBulan"].forEach(id => {
     const el = document.getElementById(id);
@@ -99,7 +92,6 @@ window.resetFilter = () => {
   tampilkanData();
 };
 
-// 🔍 Tampilkan Data
 window.tampilkanData = function () {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
@@ -194,7 +186,6 @@ window.tampilkanData = function () {
   hitungRingkasan();
 };
 
-// 🔢 Hitung Ringkasan Per Bulan (✅ FIXED)
 function hitungRingkasan() {
   const tahunFilter = document.getElementById("filterTahun").value;
   const bulanFilter = document.getElementById("filterBulan").value;
@@ -220,12 +211,11 @@ function hitungRingkasan() {
   const penghasilan = key && penghasilanBulanan[key] ? Number(penghasilanBulanan[key]) : 0;
   const sisa = penghasilan - pengeluaran;
 
-  document.getElementById("totalPenghasilan").textContent = `Rp ${penghasilan.toLocaleString("id-ID")}`;
-  document.getElementById("totalPengeluaran").textContent = `Rp ${pengeluaran.toLocaleString("id-ID")}`;
-  document.getElementById("sisaUang").textContent = `Rp ${sisa.toLocaleString("id-ID")}`;
+  document.getElementById("ringkasanTotalPenghasilan").textContent = `Rp ${penghasilan.toLocaleString("id-ID")}`;
+  document.getElementById("ringkasanTotalPengeluaran").textContent = `Rp ${pengeluaran.toLocaleString("id-ID")}`;
+  document.getElementById("ringkasanSisaUang").textContent = `Rp ${sisa.toLocaleString("id-ID")}`;
 }
 
-// 🖊️ Edit Data
 window.editData = function (tanggal, index) {
   const item = data[tanggal][index];
   const row = document.createElement("tr");
@@ -258,7 +248,6 @@ window.simpanEdit = function (tanggal, index, button) {
   tampilkanData();
 };
 
-// 🗑️ Hapus Data
 window.hapusData = function (tanggal, index) {
   if (confirm("Yakin ingin menghapus data ini?")) {
     data[tanggal].splice(index, 1);
@@ -268,7 +257,6 @@ window.hapusData = function (tanggal, index) {
   }
 };
 
-// ⬇️ Export to Excel
 window.exportToExcel = () => {
   const wb = XLSX.utils.book_new();
   const ws_data = [["Tanggal", "Kategori", "Nominal", "Keterangan"]];
@@ -282,7 +270,6 @@ window.exportToExcel = () => {
   XLSX.writeFile(wb, "RumaFinData.xlsx");
 };
 
-// 🔃 Load Data dari Firebase
 async function loadDataDariDatabase() {
   const user = auth.currentUser;
   if (!user) return;
@@ -297,7 +284,6 @@ async function loadDataDariDatabase() {
   tampilkanData();
 }
 
-// 🔐 Auth State
 auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("btnLogin").classList.add("hidden");
@@ -314,7 +300,6 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// 🔁 Reset Semua
 window.resetData = () => {
   const user = auth.currentUser;
   if (!user) return alert("Anda belum login.");
