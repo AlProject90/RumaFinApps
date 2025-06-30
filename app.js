@@ -308,3 +308,41 @@ if (!window._penghasilanListenerSet) {
   }
   window._penghasilanListenerSet = true;
 }
+window.exportToExcel = function exportToExcel() {
+  const wb = XLSX.utils.book_new();
+  const ws_data = [["Tanggal", "Kategori", "Nominal", "Keterangan"]];
+
+  for (const tanggal in data) {
+    data[tanggal].forEach(item => {
+      ws_data.push([item.tanggal, item.kategori, item.nominal, item.keterangan]);
+    });
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb, ws, "Pengeluaran");
+  XLSX.writeFile(wb, "RumaFinData.xlsx");
+};
+// 🗑️ Reset Semua Data dari Firebase
+window.resetData = function resetData() {
+  if (confirm("Yakin ingin menghapus SEMUA data (pengeluaran dan penghasilan)?")) {
+    const user = auth.currentUser;
+    if (user) {
+      database.ref("pengeluaran/" + user.uid).remove()
+        .then(() => {
+          data = {};
+          penghasilan = 0;
+          document.getElementById("penghasilan").value = 0;
+          tampilkanData();
+          hitungSisa();
+          alert("✅ Semua data berhasil dihapus.");
+        })
+        .catch(err => {
+          console.error("❌ Gagal menghapus data:", err);
+          alert("❌ Gagal menghapus data.");
+        });
+    } else {
+      alert("❌ Anda belum login.");
+    }
+  }
+};
+
