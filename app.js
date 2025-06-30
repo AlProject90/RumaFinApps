@@ -152,15 +152,15 @@ window.tampilkanData = function tampilkanData() {
   const bulanYangDitampilkan = bulanFilter !== "" ? [parseInt(bulanFilter)] : Array.from({ length: 12 }, (_, i) => i);
 
   bulanYangDitampilkan.forEach(i => {
-    const items = grupPerBulan[i] || [];
+  const items = grupPerBulan[i] || [];
 
-    const card = document.createElement("div");
-    card.className = "bg-white p-4 rounded shadow mb-4";
-    card.innerHTML = `
-      <h2 class="font-semibold text-indigo-700 mb-2">${NAMA_BULAN[i]}</h2>
-      ${
-        items.length > 0
-          ? `
+  const card = document.createElement("div");
+  card.className = "bg-white p-4 rounded shadow mb-4";
+
+  let content = `<h2 class="font-semibold text-indigo-700 mb-2">${NAMA_BULAN[i]}</h2>`;
+
+  if (items.length > 0) {
+    content += `
       <table class="min-w-full text-sm text-gray-700 border">
         <thead>
           <tr class="bg-gray-100">
@@ -179,30 +179,34 @@ window.tampilkanData = function tampilkanData() {
             <td colspan="2"></td>
           </tr>
         </tfoot>
-      </table>`
-          : `<p class="text-gray-500 italic">Belum ada data di bulan ini.</p>`
-      }
+      </table>
     `;
-    container.appendChild(card);
+  } else {
+    content += `<p class="text-gray-500 italic">Belum ada data di bulan ini.</p>`;
+  }
 
-    if (items.length > 0) {
-      const tbody = card.querySelector(`#bulan-${i}`);
-      items.forEach((item, idx) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td class="border p-1">${item.tanggal}</td>
-          <td class="border p-1">${item.kategori}</td>
-          <td class="border p-1">Rp ${Number(item.nominal).toLocaleString("id-ID")}</td>
-          <td class="border p-1">${item.keterangan || '-'}</td>
-          <td class="border p-1 text-center">
-            <button onclick="editData('${item.tanggal}', ${idx})" class="text-yellow-600 hover:underline">Edit</button>
-            <button onclick="hapusData('${item.tanggal}', ${idx})" class="text-red-600 hover:underline">Hapus</button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-  });
+  card.innerHTML = content;
+  container.appendChild(card);
+
+  // ❗ Append row hanya kalau items ada
+  if (items.length > 0) {
+    const tbody = card.querySelector(`#bulan-${i}`);
+    items.forEach((item, idx) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="border p-1">${item.tanggal}</td>
+        <td class="border p-1">${item.kategori}</td>
+        <td class="border p-1">Rp ${Number(item.nominal).toLocaleString("id-ID")}</td>
+        <td class="border p-1">${item.keterangan || '-'}</td>
+        <td class="border p-1 text-center">
+          <button onclick="editData('${item.tanggal}', ${idx})" class="text-yellow-600 hover:underline">Edit</button>
+          <button onclick="hapusData('${item.tanggal}', ${idx})" class="text-red-600 hover:underline">Hapus</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+});
 window.editData = function editData(tanggal, index) {
   const item = data[tanggal][index];
   const row = document.createElement("tr");
