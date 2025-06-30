@@ -29,28 +29,40 @@
       </div>
     </div>
 
-    <!-- Input Penghasilan Per Bulan -->
-    <div class="flex flex-col md:flex-row items-center gap-2 mb-4">
-      <input type="month" id="inputBulanPenghasilan" class="border p-2 rounded" />
-      <input type="number" id="inputNominalPenghasilan" placeholder="Nominal Penghasilan Bulanan" class="border p-2 rounded" />
-      <button onclick="simpanPenghasilanPerBulan()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-        💰 Simpan Penghasilan Bulanan
-      </button>
-    </div>
-
-    <!-- Total Uang -->
+    <!-- Input Penghasilan Bulanan -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-center">
+      <div class="border p-2 rounded bg-white font-semibold flex flex-col items-center">
+        <div class="mb-1">Penghasilan Bulanan</div>
+        <div class="flex gap-2">
+          <select id="bulanPenghasilan" class="border p-1 rounded">
+            <option value="2025-01">Januari 2025</option>
+            <option value="2025-02">Februari 2025</option>
+            <option value="2025-03">Maret 2025</option>
+            <option value="2025-04">April 2025</option>
+            <option value="2025-05">Mei 2025</option>
+            <option value="2025-06">Juni 2025</option>
+            <option value="2025-07">Juli 2025</option>
+            <option value="2025-08">Agustus 2025</option>
+            <option value="2025-09">September 2025</option>
+            <option value="2025-10">Oktober 2025</option>
+            <option value="2025-11">November 2025</option>
+            <option value="2025-12">Desember 2025</option>
+          </select>
+          <input id="penghasilan" type="number" placeholder="5000000" class="text-center border p-1 rounded text-green-700 font-bold" />
+          <button onclick="simpanPenghasilanBulanan()" class="bg-green-600 hover:bg-green-700 text-white px-2 rounded text-sm">💾</button>
+        </div>
+      </div>
       <div class="border p-2 rounded bg-white font-semibold">
         Total Penghasilan
-        <div id="penghasilanView" class="text-green-700 font-bold mt-1">Rp 0</div>
+        <div id="totalPenghasilan">Rp 0</div>
       </div>
       <div class="border p-2 rounded bg-white font-semibold">
         Total Pengeluaran
         <div id="totalPengeluaran">Rp 0</div>
       </div>
-      <div class="border p-2 rounded bg-white font-semibold">
+      <div class="border p-2 rounded bg-white font-semibold md:col-span-3">
         Sisa Uang
-        <div id="sisaUang">Rp 0</div>
+        <div id="sisaUang" class="text-lg text-blue-600 font-bold">Rp 0</div>
       </div>
     </div>
 
