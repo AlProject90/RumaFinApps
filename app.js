@@ -194,7 +194,7 @@ window.tampilkanData = function () {
   hitungRingkasan();
 };
 
-// 🔢 Hitung Ringkasan
+// 🔢 Hitung Ringkasan Per Bulan (✅ FIXED)
 function hitungRingkasan() {
   const tahunFilter = document.getElementById("filterTahun").value;
   const bulanFilter = document.getElementById("filterBulan").value;
@@ -211,9 +211,11 @@ function hitungRingkasan() {
     });
   }
 
-  const key = tahunFilter && bulanFilter !== ""
-    ? `${tahunFilter}-${String(Number(bulanFilter) + 1).padStart(2, "0")}`
-    : "";
+  let key = "";
+  if (tahunFilter && bulanFilter !== "") {
+    const bulanPad = String(parseInt(bulanFilter) + 1).padStart(2, "0");
+    key = `${tahunFilter}-${bulanPad}`;
+  }
 
   const penghasilan = key && penghasilanBulanan[key] ? Number(penghasilanBulanan[key]) : 0;
   const sisa = penghasilan - pengeluaran;
