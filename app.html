@@ -29,11 +29,20 @@
       </div>
     </div>
 
-    <!-- Total Uang (pindah ke atas) -->
+    <!-- Input Penghasilan Per Bulan -->
+    <div class="flex flex-col md:flex-row items-center gap-2 mb-4">
+      <input type="month" id="inputBulanPenghasilan" class="border p-2 rounded" />
+      <input type="number" id="inputNominalPenghasilan" placeholder="Nominal Penghasilan Bulanan" class="border p-2 rounded" />
+      <button onclick="simpanPenghasilanPerBulan()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+        💰 Simpan Penghasilan Bulanan
+      </button>
+    </div>
+
+    <!-- Total Uang -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-center">
       <div class="border p-2 rounded bg-white font-semibold">
         Total Penghasilan
-        <input id="penghasilan" type="number" placeholder="Rp 0" class="text-center w-full mt-1 border p-1 rounded text-green-700 font-bold" />
+        <div id="penghasilanView" class="text-green-700 font-bold mt-1">Rp 0</div>
       </div>
       <div class="border p-2 rounded bg-white font-semibold">
         Total Pengeluaran
