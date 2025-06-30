@@ -103,6 +103,7 @@ window.tampilkanData = function tampilkanData() {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
   const totalPerBulan = Array(12).fill(0);
+
   const search = document.getElementById("searchInput").value.toLowerCase();
   const tahunFilter = document.getElementById("filterTahun").value;
   const bulanFilter = document.getElementById("filterBulan").value;
@@ -123,7 +124,7 @@ window.tampilkanData = function tampilkanData() {
     const tahun = tgl.getFullYear();
 
     if (tahunFilter && tahun != parseInt(tahunFilter)) return;
-    if (bulanFilter && bulan !== parseInt(bulanFilter)) return;
+    if (bulanFilter !== "" && bulan !== parseInt(bulanFilter)) return;
     if (startDate && tgl < startDate) return;
     if (endDate && tgl > endDate) return;
 
@@ -138,6 +139,7 @@ window.tampilkanData = function tampilkanData() {
     });
   });
 
+  // Grupkan data berdasarkan bulan
   const grupPerBulan = {};
   dataFiltered.forEach(item => {
     const bulan = new Date(item.tanggal).getMonth();
@@ -146,8 +148,13 @@ window.tampilkanData = function tampilkanData() {
     totalPerBulan[bulan] += Number(item.nominal);
   });
 
-  for (let i = 0; i < 12; i++) {
+  // Tampilkan hanya bulan sesuai filter
+  const bulanYangDitampilkan = bulanFilter !== "" ? [parseInt(bulanFilter)] : Array.from({ length: 12 }, (_, i) => i);
+
+  bulanYangDitampilkan.forEach(i => {
     const items = grupPerBulan[i] || [];
+    if (items.length === 0) return; // Lewati kalau tidak ada data
+
     const card = document.createElement("div");
     card.className = "bg-white p-4 rounded shadow mb-4";
     card.innerHTML = `
@@ -189,11 +196,10 @@ window.tampilkanData = function tampilkanData() {
       `;
       tbody.appendChild(row);
     });
-  }
+  });
 
   hitungSisa();
-}
-
+};
 window.editData = function editData(tanggal, index) {
   const item = data[tanggal][index];
   const row = document.createElement("tr");
