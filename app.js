@@ -25,6 +25,14 @@ window.login = () => {
   auth.signInWithPopup(provider).catch(err => alert("Login gagal: " + err.message));
 };
 
+auth.onAuthStateChanged(user => {
+  if (user) {
+    ...
+    loadPenghasilanBulanan(); // <= panggil saat login
+    loadDataDariDatabase();
+  }
+});
+
 window.logout = () => auth.signOut();
 
 window.tambahBaris = () => {
@@ -59,20 +67,32 @@ window.simpanSemua = () => {
 };
 
 window.simpanPenghasilanPerBulan = () => {
+  const user = firebase.auth().currentUser;
   const bulan = document.getElementById("inputPenghasilanBulan").value;
   const tahun = document.getElementById("inputPenghasilanTahun").value;
   const nominal = Number(document.getElementById("inputPenghasilanNominal").value);
 
   if (!bulan || !tahun || isNaN(nominal)) {
-    return alert("Isi bulan, tahun, dan nominal dengan benar");
+    return alert("Lengkapi data penghasilan bulanan dengan benar.");
   }
 
-  const key = `${tahun}-${String(Number(bulan) + 1).padStart(2, "0")}`;
-  penghasilanBulanan[key] = nominal;
-  simpanKeDatabase();
-  tampilkanData();
-  hitungRingkasan();
+  const bulanIndex = String(document.getElementById("inputPenghasilanBulan").selectedIndex).padStart(2, '0');
+  const path = `penghasilan/${user.uid}/${tahun}-${bulanIndex}`;
+
+  firebase.database().ref(path).set(nominal).then(() => {
+    alert("✅ Penghasilan bulan ini berhasil disimpan.");
+    loadPenghasilanBulanan(); // ambil ulang penghasilan
+  });
 };
+async function loadPenghasilanBulanan() {
+  const user = firebase.auth().currentUser;
+  if (!user) return;
+
+  const snap = await firebase.database().ref(`penghasilan/${user.uid}`).once("value");
+  penghasilanBulanan = snap.val() || {};
+  hitungRingkasan();
+}
+
 
 function simpanKeDatabase() {
   const user = auth.currentUser;
@@ -204,7 +224,7 @@ function hitungRingkasan() {
 
   let key = "";
   if (tahunFilter && bulanFilter !== "") {
-    const bulanPad = String(parseInt(bulanFilter) + 1).padStart(2, "0");
+    const bulanPad = String(parseInt(bulanFilter)).padStart(2, "0");
     key = `${tahunFilter}-${bulanPad}`;
   }
 
