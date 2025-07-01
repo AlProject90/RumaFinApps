@@ -1,3 +1,4 @@
+// ✅ Konfigurasi Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCtXSM2NOuH4ruhasx7O7rzxTxxKfYdTts",
   authDomain: "rumafinapps.firebaseapp.com",
@@ -12,29 +13,23 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
-let data = {};
-let penghasilanBulanan = {};
-
-const NAMA_BULAN = [
+// 🧠 State Data
+let data = {}; // pengeluaran
+let penghasilanBulanan = {}; // penghasilan per bulan
+tconst NAMA_BULAN = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
 
+// 🔐 Google Login
 window.login = () => {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(err => alert("Login gagal: " + err.message));
 };
 
-auth.onAuthStateChanged(user => {
-  if (user) {
-    ...
-    loadPenghasilanBulanan(); // <= panggil saat login
-    loadDataDariDatabase();
-  }
-});
-
 window.logout = () => auth.signOut();
 
+// ➕ Tambah Baris Kosong Input
 window.tambahBaris = () => {
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -47,6 +42,7 @@ window.tambahBaris = () => {
   document.getElementById("inputRows").appendChild(row);
 };
 
+// 💾 Simpan Semua Input ke State dan Database
 window.simpanSemua = () => {
   const rows = document.querySelectorAll("#inputRows tr");
   rows.forEach(row => {
@@ -66,34 +62,24 @@ window.simpanSemua = () => {
   hitungRingkasan();
 };
 
+// 💰 Simpan Penghasilan Bulanan
 window.simpanPenghasilanPerBulan = () => {
-  const user = firebase.auth().currentUser;
   const bulan = document.getElementById("inputPenghasilanBulan").value;
   const tahun = document.getElementById("inputPenghasilanTahun").value;
   const nominal = Number(document.getElementById("inputPenghasilanNominal").value);
 
   if (!bulan || !tahun || isNaN(nominal)) {
-    return alert("Lengkapi data penghasilan bulanan dengan benar.");
+    return alert("Isi bulan, tahun, dan nominal dengan benar");
   }
 
-  const bulanIndex = String(document.getElementById("inputPenghasilanBulan").selectedIndex).padStart(2, '0');
-  const path = `penghasilan/${user.uid}/${tahun}-${bulanIndex}`;
-
-  firebase.database().ref(path).set(nominal).then(() => {
-    alert("✅ Penghasilan bulan ini berhasil disimpan.");
-    loadPenghasilanBulanan(); // ambil ulang penghasilan
-  });
-};
-async function loadPenghasilanBulanan() {
-  const user = firebase.auth().currentUser;
-  if (!user) return;
-
-  const snap = await firebase.database().ref(`penghasilan/${user.uid}`).once("value");
-  penghasilanBulanan = snap.val() || {};
+  const key = `${tahun}-${String(Number(bulan) + 1).padStart(2, "0")}`;
+  penghasilanBulanan[key] = nominal;
+  simpanKeDatabase();
+  tampilkanData();
   hitungRingkasan();
-}
+};
 
-
+// 🔁 Simpan Data ke Firebase
 function simpanKeDatabase() {
   const user = auth.currentUser;
   if (user) {
@@ -104,6 +90,7 @@ function simpanKeDatabase() {
   }
 }
 
+// 🔄 Reset Filter
 window.resetFilter = () => {
   ["searchInput", "filterTahun", "startDate", "endDate", "filterBulan"].forEach(id => {
     const el = document.getElementById(id);
@@ -112,6 +99,7 @@ window.resetFilter = () => {
   tampilkanData();
 };
 
+// 🔍 Tampilkan Data Berdasarkan Filter
 window.tampilkanData = function () {
   const container = document.getElementById("bulanContainer");
   container.innerHTML = "";
@@ -128,7 +116,6 @@ window.tampilkanData = function () {
   semuaTanggal.forEach(tglStr => {
     const items = data[tglStr];
     if (!Array.isArray(items)) return;
-
     const tgl = new Date(tglStr);
     const bulan = tgl.getMonth();
     const tahun = tgl.getFullYear();
@@ -146,6 +133,7 @@ window.tampilkanData = function () {
     });
   });
 
+  // Grouping dan Tampilkan
   const grupPerBulan = {};
   dataFiltered.forEach(item => {
     const date = new Date(item.tanggal);
@@ -157,11 +145,9 @@ window.tampilkanData = function () {
   for (const key in grupPerBulan) {
     const items = grupPerBulan[key];
     const bulan = +key.split("-")[1] - 1;
-
     const card = document.createElement("div");
     card.className = "bg-white p-4 rounded shadow mb-4";
     let content = `<h2 class="font-semibold text-indigo-700 mb-2">${NAMA_BULAN[bulan]} ${key.split("-")[0]}</h2>`;
-
     let total = items.reduce((acc, cur) => acc + Number(cur.nominal), 0);
     content += `
       <table class="min-w-full text-sm text-gray-700 border">
@@ -182,10 +168,10 @@ window.tampilkanData = function () {
         </tfoot>
       </table>
     `;
-
     card.innerHTML = content;
     container.appendChild(card);
 
+    // Render Baris
     const tbody = card.querySelector(`#bulan-${key}`);
     items.forEach((item, idx) => {
       const row = document.createElement("tr");
@@ -206,6 +192,7 @@ window.tampilkanData = function () {
   hitungRingkasan();
 };
 
+// 📊 Hitung Ringkasan (Penghasilan, Pengeluaran, Sisa)
 function hitungRingkasan() {
   const tahunFilter = document.getElementById("filterTahun").value;
   const bulanFilter = document.getElementById("filterBulan").value;
@@ -224,18 +211,19 @@ function hitungRingkasan() {
 
   let key = "";
   if (tahunFilter && bulanFilter !== "") {
-    const bulanPad = String(parseInt(bulanFilter)).padStart(2, "0");
+    const bulanPad = String(parseInt(bulanFilter) + 1).padStart(2, "0");
     key = `${tahunFilter}-${bulanPad}`;
   }
 
   const penghasilan = key && penghasilanBulanan[key] ? Number(penghasilanBulanan[key]) : 0;
   const sisa = penghasilan - pengeluaran;
 
-  document.getElementById("ringkasanTotalPenghasilan").textContent = `Rp ${penghasilan.toLocaleString("id-ID")}`;
-  document.getElementById("ringkasanTotalPengeluaran").textContent = `Rp ${pengeluaran.toLocaleString("id-ID")}`;
-  document.getElementById("ringkasanSisaUang").textContent = `Rp ${sisa.toLocaleString("id-ID")}`;
+  document.getElementById("totalPenghasilan").textContent = `Rp ${penghasilan.toLocaleString("id-ID")}`;
+  document.getElementById("totalPengeluaran").textContent = `Rp ${pengeluaran.toLocaleString("id-ID")}`;
+  document.getElementById("sisaUang").textContent = `Rp ${sisa.toLocaleString("id-ID")}`;
 }
 
+// ✏️ Edit Data
 window.editData = function (tanggal, index) {
   const item = data[tanggal][index];
   const row = document.createElement("tr");
@@ -251,6 +239,7 @@ window.editData = function (tanggal, index) {
   tbody.replaceChild(row, rows[index]);
 };
 
+// 💾 Simpan Edit
 window.simpanEdit = function (tanggal, index, button) {
   const row = button.closest("tr");
   const inputs = row.querySelectorAll("input");
@@ -268,6 +257,7 @@ window.simpanEdit = function (tanggal, index, button) {
   tampilkanData();
 };
 
+// 🗑️ Hapus Data
 window.hapusData = function (tanggal, index) {
   if (confirm("Yakin ingin menghapus data ini?")) {
     data[tanggal].splice(index, 1);
@@ -277,6 +267,7 @@ window.hapusData = function (tanggal, index) {
   }
 };
 
+// 📤 Export ke Excel
 window.exportToExcel = () => {
   const wb = XLSX.utils.book_new();
   const ws_data = [["Tanggal", "Kategori", "Nominal", "Keterangan"]];
@@ -290,6 +281,7 @@ window.exportToExcel = () => {
   XLSX.writeFile(wb, "RumaFinData.xlsx");
 };
 
+// 🔄 Load dari Firebase Saat Login
 async function loadDataDariDatabase() {
   const user = auth.currentUser;
   if (!user) return;
@@ -304,6 +296,7 @@ async function loadDataDariDatabase() {
   tampilkanData();
 }
 
+// 🔐 Auth State Changed
 auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("btnLogin").classList.add("hidden");
@@ -320,6 +313,7 @@ auth.onAuthStateChanged(user => {
   }
 });
 
+// 🔁 Reset Semua Data
 window.resetData = () => {
   const user = auth.currentUser;
   if (!user) return alert("Anda belum login.");
